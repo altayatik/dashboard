@@ -17,7 +17,6 @@ const LS_TRAFFIC = "dash_traffic_embedded_v1";
 const DATA_API_BASE = "https://dashboard-data-api.vercel.app";
 const DATA_SCRIPT_TIMEOUT_MS = 4500;
 const STATIC_DATA_URLS = {
-  weather: new URL("./data/weather.json", import.meta.url),
   markets: new URL("./data/markets.json", import.meta.url)
 };
 
