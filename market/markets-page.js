@@ -3,7 +3,9 @@ import { iconChart } from "../shared/icons.js";
 
 const API_BASE = "https://dashboard-data-api.vercel.app/api/markets";
 const LS_MARKET_DETAIL = "dash_markets_detail_v1";
+const LS_MARKET_HOME = "dash_markets_embedded_v1";
 const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
+const SCRIPT_TIMEOUT_MS = 7000;
 
 const SYMBOLS = ["SPY", "QQQ", "IAU", "SLV"];
 
@@ -125,12 +127,23 @@ function loadMarketsScript() {
     delete window.DASH_DATA.markets;
 
     const s = document.createElement("script");
+    const timer = window.setTimeout(() => {
+      s.remove();
+      reject(new Error("Markets request timed out"));
+    }, SCRIPT_TIMEOUT_MS);
+
     // if your API supports params, keep them; otherwise it will ignore them safely
     s.src = `${API_BASE}?symbols=${encodeURIComponent(SYMBOLS.join(","))}&days=5`;
     s.async = true;
 
-    s.onload = () => resolve(window.DASH_DATA.markets);
-    s.onerror = () => reject(new Error("Failed to load markets script"));
+    s.onload = () => {
+      window.clearTimeout(timer);
+      resolve(window.DASH_DATA.markets);
+    };
+    s.onerror = () => {
+      window.clearTimeout(timer);
+      reject(new Error("Failed to load markets script"));
+    };
     document.head.appendChild(s);
   });
 }
@@ -150,6 +163,25 @@ function setCached(payload) {
   try {
     localStorage.setItem(LS_MARKET_DETAIL, JSON.stringify({ savedAt: Date.now(), payload }));
   } catch {}
+}
+
+function getHomeCached() {
+  try {
+    const c = JSON.parse(localStorage.getItem(LS_MARKET_HOME));
+    return c?.symbols ? c : null;
+  } catch {
+    return null;
+  }
+}
+
+async function getStaticFallback() {
+  try {
+    const r = await fetch("../data/markets.json", { cache: "no-store" });
+    if (!r.ok) return null;
+    return await r.json();
+  } catch {
+    return null;
+  }
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -187,9 +219,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
+  const fallback = getHomeCached() || await getStaticFallback();
+  if (fallback) {
+    const norm = normalizeMarkets(fallback);
+    renderGrid(el.mktGrid, norm);
+    el.mktUpdated.textContent = `Updated ${norm.updated || "offline snapshot"}`;
+    el.mktStatus.textContent = "Refreshing…";
+  }
+
   // Otherwise fetch fresh (backend KV caching should prevent API abuse)
   try {
-    el.mktStatus.textContent = "Loading…";
+    if (!fallback) el.mktStatus.textContent = "Loading…";
     const raw = await loadMarketsScript();
     setCached(raw);
 
@@ -202,6 +242,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       norm.in_hours === false ? "Market closed" :
       "Snapshot";
   } catch (err) {
+    if (fallback) {
+      const norm = normalizeMarkets(fallback);
+      renderGrid(el.mktGrid, norm);
+      el.mktStatus.textContent = "Offline snapshot";
+      el.mktUpdated.textContent = `Updated ${norm.updated || String(err?.message || err)}`;
+      return;
+    }
+
     el.mktStatus.textContent = "Markets unavailable";
     el.mktUpdated.textContent = String(err?.message || err);
   }

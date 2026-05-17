@@ -14,6 +14,12 @@ import { HOME_CLOCKS, formatTime12h } from "./shared/world-clock-utils.js";
 const LS_WEATHER = "dash_weather_embedded_v1";
 const LS_MARKETS = "dash_markets_embedded_v1";
 const LS_TRAFFIC = "dash_traffic_embedded_v1";
+const DATA_API_BASE = "https://dashboard-data-api.vercel.app";
+const DATA_SCRIPT_TIMEOUT_MS = 4500;
+const STATIC_DATA_URLS = {
+  weather: new URL("./data/weather.json", import.meta.url),
+  markets: new URL("./data/markets.json", import.meta.url)
+};
 
 function greetingForHour24(h) {
   if (h >= 5 && h < 12) return "Good morning";
@@ -192,6 +198,56 @@ function renderFromCache(el, footerState) {
   } catch {}
 }
 
+function loadDataScript(kind) {
+  return new Promise((resolve) => {
+    window.DASH_DATA = window.DASH_DATA || {};
+
+    const script = document.createElement("script");
+    const timer = window.setTimeout(() => {
+      script.remove();
+      resolve(null);
+    }, DATA_SCRIPT_TIMEOUT_MS);
+
+    script.src = `${DATA_API_BASE}/api/${kind}`;
+    script.async = true;
+    script.onload = () => {
+      window.clearTimeout(timer);
+      resolve(window.DASH_DATA?.[kind] || null);
+    };
+    script.onerror = () => {
+      window.clearTimeout(timer);
+      resolve(null);
+    };
+
+    document.head.appendChild(script);
+  });
+}
+
+function refreshEmbeddedData(el, footerState) {
+  for (const kind of ["weather", "markets", "traffic"]) {
+    loadDataScript(kind).then((payload) => {
+      if (!payload) return;
+      renderFromEmbedded(el, footerState);
+      if (el.footerLine) el.footerLine.textContent = buildFooterLine(footerState);
+    });
+  }
+}
+
+async function loadStaticFallbacks(el, footerState) {
+  for (const [kind, url] of Object.entries(STATIC_DATA_URLS)) {
+    if (window.DASH_DATA?.[kind]) continue;
+
+    try {
+      const response = await fetch(url, { cache: "no-store" });
+      if (!response.ok) continue;
+      window.DASH_DATA = window.DASH_DATA || {};
+      window.DASH_DATA[kind] = await response.json();
+      renderFromEmbedded(el, footerState);
+      if (el.footerLine) el.footerLine.textContent = buildFooterLine(footerState);
+    } catch {}
+  }
+}
+
 function makeCardLink(node, href) {
   if (!node) return;
   const go = () => (window.location.href = href);
@@ -261,6 +317,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   renderFromCache(el, footerState);
   renderFromEmbedded(el, footerState);
+  loadStaticFallbacks(el, footerState);
+  refreshEmbeddedData(el, footerState);
 
   if (el.footerLine) el.footerLine.textContent = buildFooterLine(footerState);
 
