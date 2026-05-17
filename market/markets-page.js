@@ -9,6 +9,12 @@ const SCRIPT_TIMEOUT_MS = 7000;
 
 const SYMBOLS = ["SPY", "QQQ", "IAU", "SLV"];
 
+function afterPageLoad(fn) {
+  const run = () => window.setTimeout(fn, 0);
+  if (document.readyState === "complete") run();
+  else window.addEventListener("load", run, { once: true });
+}
+
 function fmtMoney(n) {
   if (n == null || !Number.isFinite(Number(n))) return "—";
   return `$${Number(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -227,30 +233,32 @@ document.addEventListener("DOMContentLoaded", async () => {
     el.mktStatus.textContent = "Refreshing…";
   }
 
-  // Otherwise fetch fresh (backend KV caching should prevent API abuse)
-  try {
-    if (!fallback) el.mktStatus.textContent = "Loading…";
-    const raw = await loadMarketsScript();
-    setCached(raw);
+  afterPageLoad(async () => {
+    // Backend KV caching should prevent API abuse; defer so page load finishes first.
+    try {
+      if (!fallback) el.mktStatus.textContent = "Loading…";
+      const raw = await loadMarketsScript();
+      setCached(raw);
 
-    const norm = normalizeMarkets(raw);
-    renderGrid(el.mktGrid, norm);
-
-    el.mktUpdated.textContent = `Updated ${norm.updated || "—"}`;
-    el.mktStatus.textContent =
-      norm.in_hours === true ? "Market open" :
-      norm.in_hours === false ? "Market closed" :
-      "Snapshot";
-  } catch (err) {
-    if (fallback) {
-      const norm = normalizeMarkets(fallback);
+      const norm = normalizeMarkets(raw);
       renderGrid(el.mktGrid, norm);
-      el.mktStatus.textContent = "Offline snapshot";
-      el.mktUpdated.textContent = `Updated ${norm.updated || String(err?.message || err)}`;
-      return;
-    }
 
-    el.mktStatus.textContent = "Markets unavailable";
-    el.mktUpdated.textContent = String(err?.message || err);
-  }
+      el.mktUpdated.textContent = `Updated ${norm.updated || "—"}`;
+      el.mktStatus.textContent =
+        norm.in_hours === true ? "Market open" :
+        norm.in_hours === false ? "Market closed" :
+        "Snapshot";
+    } catch (err) {
+      if (fallback) {
+        const norm = normalizeMarkets(fallback);
+        renderGrid(el.mktGrid, norm);
+        el.mktStatus.textContent = "Offline snapshot";
+        el.mktUpdated.textContent = `Updated ${norm.updated || String(err?.message || err)}`;
+        return;
+      }
+
+      el.mktStatus.textContent = "Markets unavailable";
+      el.mktUpdated.textContent = String(err?.message || err);
+    }
+  });
 });

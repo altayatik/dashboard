@@ -21,6 +21,12 @@ const STATIC_DATA_URLS = {
   markets: new URL("./data/markets.json", import.meta.url)
 };
 
+function afterPageLoad(fn) {
+  const run = () => window.setTimeout(fn, 0);
+  if (document.readyState === "complete") run();
+  else window.addEventListener("load", run, { once: true });
+}
+
 function greetingForHour24(h) {
   if (h >= 5 && h < 12) return "Good morning";
   if (h >= 12 && h < 17) return "Good afternoon";
@@ -318,7 +324,7 @@ document.addEventListener("DOMContentLoaded", () => {
   renderFromCache(el, footerState);
   renderFromEmbedded(el, footerState);
   loadStaticFallbacks(el, footerState);
-  refreshEmbeddedData(el, footerState);
+  afterPageLoad(() => refreshEmbeddedData(el, footerState));
 
   if (el.footerLine) el.footerLine.textContent = buildFooterLine(footerState);
 
