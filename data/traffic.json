@@ -1,0 +1,44 @@
+{
+  "updated_iso": "2026-05-19T19:23:23.077Z",
+  "routes": [
+    {
+      "id": "I90_94",
+      "label": "I-90/94",
+      "status": "Severe",
+      "delay_min": 23,
+      "reversible_lanes": {
+        "label": "Outbound",
+        "direction": "outbound",
+        "source": "Travel Midwest",
+        "source_updated": "Tue May 19 14:13:44 CDT 2026",
+        "age_min": 10,
+        "inbound": {
+          "direction": "Inbound",
+          "description": "Inbound Kennedy Reversibles from Montrose to Ohio",
+          "travel_time_min": null,
+          "speed_mph": null,
+          "active": false
+        },
+        "outbound": {
+          "direction": "Outbound",
+          "description": "Outbound Kennedy Reversibles from Ohio to Montrose",
+          "travel_time_min": 13,
+          "speed_mph": null,
+          "active": true
+        }
+      }
+    },
+    {
+      "id": "I290",
+      "label": "I-290",
+      "status": "Medium",
+      "delay_min": 9
+    },
+    {
+      "id": "I55",
+      "label": "I-55",
+      "status": "Light",
+      "delay_min": 5
+    }
+  ]
+}

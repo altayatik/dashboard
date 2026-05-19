@@ -21,7 +21,8 @@ const DATA_SCRIPT_TIMEOUTS_MS = {
 };
 const DATA_SCRIPT_VERSION = "20260517-traffic2";
 const STATIC_DATA_URLS = {
-  markets: new URL("./data/markets.json", import.meta.url)
+  markets: new URL("./data/markets.json", import.meta.url),
+  traffic: new URL("./data/traffic.json", import.meta.url)
 };
 
 function afterPageLoad(fn) {
@@ -245,7 +246,7 @@ function refreshEmbeddedData(el, footerState) {
 }
 
 async function loadStaticFallbacks(el, footerState) {
-  for (const [kind, url] of Object.entries(STATIC_DATA_URLS)) {
+  await Promise.all(Object.entries(STATIC_DATA_URLS).map(async ([kind, url]) => {
     if (window.DASH_DATA?.[kind]) continue;
 
     try {
@@ -256,7 +257,7 @@ async function loadStaticFallbacks(el, footerState) {
       renderFromEmbedded(el, footerState);
       if (el.footerLine) el.footerLine.textContent = buildFooterLine(footerState);
     } catch {}
-  }
+  }));
 }
 
 function makeCardLink(node, href) {
