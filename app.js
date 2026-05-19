@@ -20,10 +20,6 @@ const DATA_SCRIPT_TIMEOUTS_MS = {
   traffic: 9000
 };
 const DATA_SCRIPT_VERSION = "20260517-traffic2";
-const STATIC_DATA_URLS = {
-  markets: new URL("./data/markets.json", import.meta.url)
-};
-
 function afterPageLoad(fn) {
   const run = () => window.setTimeout(fn, 0);
   if (document.readyState === "complete") run();
@@ -244,21 +240,6 @@ function refreshEmbeddedData(el, footerState) {
   }
 }
 
-async function loadStaticFallbacks(el, footerState) {
-  for (const [kind, url] of Object.entries(STATIC_DATA_URLS)) {
-    if (window.DASH_DATA?.[kind]) continue;
-
-    try {
-      const response = await fetch(url, { cache: "no-store" });
-      if (!response.ok) continue;
-      window.DASH_DATA = window.DASH_DATA || {};
-      window.DASH_DATA[kind] = await response.json();
-      renderFromEmbedded(el, footerState);
-      if (el.footerLine) el.footerLine.textContent = buildFooterLine(footerState);
-    } catch {}
-  }
-}
-
 function makeCardLink(node, href) {
   if (!node) return;
   const go = () => (window.location.href = href);
@@ -328,7 +309,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   renderFromCache(el, footerState);
   renderFromEmbedded(el, footerState);
-  loadStaticFallbacks(el, footerState);
   afterPageLoad(() => refreshEmbeddedData(el, footerState));
 
   if (el.footerLine) el.footerLine.textContent = buildFooterLine(footerState);
