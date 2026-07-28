@@ -1,124 +1,213 @@
 <!doctype html>
-<html>
+<html lang="en" data-theme="daybreak">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>E-Ink Dashboard</title>
-  <link rel="stylesheet" href="styles.css?v=20260519-marketfix">
+  <meta name="theme-color" content="#f3f0e8">
+  <meta name="description" content="Altay's live Chicago briefing — weather, markets, traffic, and world time in one calm view.">
+  <title>Altay's Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles-v2.css?v=20260727-3">
 </head>
 <body>
+  <div class="ambient ambient-one" aria-hidden="true"></div>
+  <div class="ambient ambient-two" aria-hidden="true"></div>
+  <div class="scene-effects" aria-hidden="true">
+    <div class="star-field star-field-one"></div>
+    <div class="star-field star-field-two"></div>
+    <div class="weather-orb"></div>
+    <div class="weather-cloud weather-cloud-one"></div>
+    <div class="weather-cloud weather-cloud-two"></div>
+    <div class="weather-precip"></div>
+  </div>
 
-<main class="stage">
+  <main class="shell">
+    <header class="topbar">
+      <p class="dashboard-label">ALTAY’S DASHBOARD</p>
 
-  <header class="top">
-    <div>
-      <div class="headline" id="greeting">Hello</div>
-      <div class="subline" id="dateLine">--</div>
+      <div class="location-pill" aria-label="Dashboard location">
+        <span class="live-dot"></span>
+        <span id="locationLabel">Chicago, IL</span>
+      </div>
+
+      <div class="header-actions">
+        <p class="last-sync" id="lastSync">Waiting for signal</p>
+        <button class="icon-button" id="refreshButton" type="button" aria-label="Refresh dashboard" title="Refresh dashboard">↻</button>
+        <div class="theme-control">
+          <button class="theme-button" id="themeButton" type="button" aria-expanded="false" aria-controls="themeMenu">
+            <span class="theme-swatch" aria-hidden="true"></span>
+            <span id="themeButtonLabel">Daybreak</span>
+            <span class="chevron" aria-hidden="true">⌄</span>
+          </button>
+          <div class="theme-menu" id="themeMenu" role="menu" hidden>
+            <button type="button" role="menuitem" data-theme-value="daybreak">
+              <span class="menu-swatch swatch-daybreak"></span><span>Daybreak<small>Warm and airy</small></span>
+            </button>
+            <button type="button" role="menuitem" data-theme-value="afterdark">
+              <span class="menu-swatch swatch-afterdark"></span><span>After dark<small>Deep blue focus</small></span>
+            </button>
+            <button type="button" role="menuitem" data-theme-value="weather">
+              <span class="menu-swatch swatch-weather"></span><span>Weather<small>Follows the sky</small></span>
+            </button>
+            <button type="button" role="menuitem" data-theme-value="eink">
+              <span class="menu-swatch swatch-eink"></span><span>E-ink<small>Pure monochrome</small></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="intro">
+      <div>
+        <p class="eyebrow" id="dateEyebrow">MONDAY · JUL 27</p>
+        <h1><span id="greeting">Good afternoon, Altay.</span><br><span class="soft">Here’s what’s happening.</span></h1>
+      </div>
+      <div class="local-time" aria-label="Current local time">
+        <p>LOCAL TIME</p>
+        <time id="localTime">--:--</time>
+        <span id="localSeconds">--</span>
+      </div>
+    </section>
+
+    <section class="dashboard-grid" aria-label="Live briefing">
+      <article class="panel weather-panel is-loading" data-detail="weather" tabindex="0" role="button" aria-label="Open detailed weather">
+        <div class="skeleton-layer skeleton-weather" aria-hidden="true">
+          <span class="skeleton-short"></span><span class="skeleton-medium"></span>
+          <span class="skeleton-temperature"></span><span class="skeleton-chart"></span>
+          <span class="skeleton-metrics"></span>
+        </div>
+        <div class="panel-head">
+          <div>
+            <p class="panel-kicker"><span class="weather-glyph" id="weatherGlyph">○</span> WEATHER</p>
+            <h2 id="weatherSummary">Loading Chicago sky…</h2>
+          </div>
+          <span class="status-chip" id="weatherStatus">LIVE</span>
+        </div>
+
+        <div class="weather-now">
+          <div class="temperature"><span id="temperature">--</span><sup>°F</sup></div>
+          <div class="weather-meta">
+            <p>Feels like <strong id="feelsLike">--°</strong></p>
+            <p>H <strong id="highTemp">--°</strong> · L <strong id="lowTemp">--°</strong></p>
+          </div>
+        </div>
+
+        <div class="weather-chart">
+          <div class="chart-labels">
+            <span>NEXT 12 HOURS</span>
+            <span id="weatherRange">--° — --°</span>
+          </div>
+          <div class="chart-canvas" id="weatherChart" aria-label="Hourly temperature chart"></div>
+          <div class="chart-times" id="weatherTimes"></div>
+        </div>
+
+        <div class="metric-row">
+          <div><span>HUMIDITY</span><strong id="humidity">--%</strong></div>
+          <div><span>WIND</span><strong id="wind">-- mph</strong></div>
+          <div><span>RAIN</span><strong id="rainChance">--%</strong></div>
+          <div><span>PRESSURE</span><strong id="pressure">-- hPa</strong></div>
+        </div>
+      </article>
+
+      <article class="panel market-panel is-loading" data-detail="markets" tabindex="0" role="button" aria-label="Open detailed markets">
+        <div class="skeleton-layer skeleton-card" aria-hidden="true">
+          <span class="skeleton-short"></span><span class="skeleton-medium"></span>
+          <span class="skeleton-value"></span><span class="skeleton-chart-small"></span>
+          <span class="skeleton-rows"></span>
+        </div>
+        <div class="panel-head">
+          <div>
+            <p class="panel-kicker">MARKET PULSE</p>
+            <h2>Selected signals</h2>
+          </div>
+          <span class="market-state" id="marketState">CHECKING</span>
+        </div>
+
+        <div class="market-feature">
+          <div>
+            <p><strong>SPY</strong><span>S&P 500 ETF</span></p>
+            <h3 id="spyPrice">—</h3>
+            <span class="delta" id="spyDelta">—</span>
+          </div>
+          <div class="mini-chart" id="spyChart" aria-label="SPY five-day chart"></div>
+        </div>
+
+        <div class="ticker-list" id="tickerList">
+          <div class="ticker-row skeleton-row"><span>QQQ</span><b>—</b><em>—</em></div>
+          <div class="ticker-row skeleton-row"><span>IAU</span><b>—</b><em>—</em></div>
+          <div class="ticker-row skeleton-row"><span>SLV</span><b>—</b><em>—</em></div>
+        </div>
+        <p class="panel-note" id="marketNote">Prices refresh when a reliable snapshot is available.</p>
+      </article>
+
+      <article class="panel commute-panel is-loading" data-detail="traffic" tabindex="0" role="button" aria-label="Open detailed traffic">
+        <div class="skeleton-layer skeleton-card" aria-hidden="true">
+          <span class="skeleton-short"></span><span class="skeleton-medium"></span>
+          <span class="skeleton-route"></span><span class="skeleton-route"></span>
+          <span class="skeleton-route"></span>
+        </div>
+        <div class="panel-head">
+          <div>
+            <p class="panel-kicker">CHICAGO TRAFFIC</p>
+            <h2>Road pulse</h2>
+          </div>
+          <span class="tiny-time" id="trafficUpdated">NOW</span>
+        </div>
+        <div class="route-list" id="routeList">
+          <div class="route"><span>I-90/94</span><div class="route-track"><i style="--fill:35%"></i></div><strong>—</strong></div>
+          <div class="route"><span>I-290</span><div class="route-track"><i style="--fill:35%"></i></div><strong>—</strong></div>
+          <div class="route"><span>I-55</span><div class="route-track"><i style="--fill:35%"></i></div><strong>—</strong></div>
+        </div>
+        <div class="reversible" id="reversibleLanes">
+          <span>↔</span>
+          <p><small>KENNEDY REVERSIBLES</small><strong>Checking lane direction…</strong></p>
+        </div>
+      </article>
+
+      <article class="panel world-panel" data-detail="world" tabindex="0" role="button" aria-label="Open detailed world clocks">
+        <div class="panel-head">
+          <div>
+            <p class="panel-kicker">WORLD WINDOWS</p>
+            <h2>People you’re ahead of</h2>
+          </div>
+          <button class="quiet-button" id="timeFormatButton" type="button" aria-label="Toggle time format">24H</button>
+        </div>
+        <div class="clock-list" id="clockList"></div>
+      </article>
+
+      <article class="panel forecast-panel is-loading" data-detail="forecast" tabindex="0" role="button" aria-label="Open detailed forecast">
+        <div class="skeleton-layer skeleton-forecast" aria-hidden="true">
+          <span class="skeleton-medium"></span><span class="skeleton-value"></span>
+          <span class="skeleton-days"></span>
+        </div>
+        <div class="forecast-title">
+          <p class="panel-kicker">THE WEEK AHEAD</p>
+          <p id="forecastNarrative">A quick read on the next few days.</p>
+        </div>
+        <div class="forecast-days" id="forecastDays"></div>
+      </article>
+    </section>
+
+    <footer>
+      <p>Personal dashboard · Chicago</p>
+      <div><span id="dataHealth">Connecting to live sources</span><i></i><a href="./e-ink/">Fixed e-ink view ↗</a></div>
+    </footer>
+  </main>
+
+  <dialog class="detail-dialog" id="detailDialog" aria-labelledby="dialogTitle">
+    <div class="dialog-shell">
+      <header class="dialog-head">
+        <div><p id="dialogKicker">DETAIL</p><h2 id="dialogTitle">Dashboard detail</h2></div>
+        <form method="dialog"><button class="dialog-close" type="submit" aria-label="Close detail">×</button></form>
+      </header>
+      <div class="dialog-content" id="dialogContent"></div>
     </div>
+  </dialog>
 
-    <div class="topRight">
-      <button
-        class="themeToggle"
-        id="themeToggle"
-        aria-label="Toggle night mode"
-        aria-pressed="false"
-        title="Night mode">
-
-        <svg class="iconMoon" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M21 12.79A9 9 0 1 1 11.21 3A7 7 0 0 0 21 12.79z"></path>
-        </svg>
-
-        <svg class="iconSun" viewBox="0 0 24 24" aria-hidden="true">
-          <circle cx="12" cy="12" r="4"></circle>
-          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path>
-        </svg>
-
-      </button>
-
-      <div class="clock" id="clock">--:--</div>
-    </div>
-  </header>
-
-  <section class="grid">
-
-    <!-- weather -->
-    <article class="card" id="weatherCard" tabindex="0" role="link" aria-label="Open weather details">
-      <div class="cardTitle">
-        <span class="icon" id="wxIcon"></span>
-        <span>Weather</span>
-      </div>
-
-      <div class="wxMain">
-        <div class="wxTemp" id="wxTemp">--°</div>
-        <div class="wxDesc" id="wxDesc">--</div>
-      </div>
-
-      <div class="wxMeta">
-        <div><span class="k">Hi</span> <span class="v" id="wxHi">--°</span></div>
-        <div><span class="k">Lo</span> <span class="v" id="wxLo">--°</span></div>
-      </div>
-    </article>
-
-    <!-- markets -->
-    <article class="card" id="marketsCard" tabindex="0" role="link" aria-label="Open market details">
-      <div class="cardTitle">
-        <span class="icon" id="mktIcon"></span>
-        <span>Markets</span>
-      </div>
-
-      <div class="row">
-        <div class="label">SPY</div>
-        <div class="value" id="spy">--</div>
-      </div>
-
-      <div class="row">
-        <div class="label">IAU</div>
-        <div class="value" id="iau">--</div>
-      </div>
-    </article>
-
-    <!-- world clock -->
-    <article class="card" id="worldClockCard" tabindex="0" role="link" aria-label="Open world clock">
-      <div class="cardTitle">
-        <span class="icon" id="wcIcon"></span>
-        <span>World Clock</span>
-      </div>
-
-      <div class="wcList" id="wcList"></div>
-    </article>
-
-    <!-- traffic -->
-    <article class="card" id="trafficCard" tabindex="0" aria-label="Traffic status">
-      <div class="cardTitle">
-        <span class="icon" id="trafficIcon"></span>
-        <span>Traffic</span>
-      </div>
-
-      <div class="wcList" id="trafficList">
-        <div class="wcTile">
-          <div class="wcCity">I-90/94</div>
-          <div class="wcTime">--</div>
-        </div>
-        <div class="wcTile">
-          <div class="wcCity">I-290</div>
-          <div class="wcTime">--</div>
-        </div>
-        <div class="wcTile">
-          <div class="wcCity">I-55</div>
-          <div class="wcTime">--</div>
-        </div>
-      </div>
-    </article>
-
-  </section>
-
-  <footer class="footer">
-    <span class="tiny muted" id="footerLine">--</span>
-  </footer>
-
-</main>
-
-<script src="config.js"></script>
-<script type="module" src="app.js?v=20260519-marketfix"></script>
+  <script>window.__PRELOADED_DASHBOARD__ = null;</script>
+  <script src="config.js"></script>
+  <script type="module" src="app-v2.js?v=20260727-3"></script>
 </body>
 </html>

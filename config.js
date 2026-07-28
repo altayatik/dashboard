@@ -1,6 +1,7 @@
 // config.js
 window.DASH_CONFIG = {
   name: "Altay",
+  dataApiBase: "https://dashboard-data-api.vercel.app",
 
   // Set these to your location (example: Chicago)
   lat: 41.8781,
