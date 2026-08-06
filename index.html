@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles-v2.css?v=20260727-3">
+  <link rel="stylesheet" href="styles-v2.css?v=20260728-4">
 </head>
 <body>
   <div class="ambient ambient-one" aria-hidden="true"></div>
@@ -42,6 +42,9 @@
             <span class="chevron" aria-hidden="true">⌄</span>
           </button>
           <div class="theme-menu" id="themeMenu" role="menu" hidden>
+            <button type="button" role="menuitem" data-theme-value="auto">
+              <span class="menu-swatch swatch-auto"></span><span>Auto<small>Follows sunrise and sunset</small></span>
+            </button>
             <button type="button" role="menuitem" data-theme-value="daybreak">
               <span class="menu-swatch swatch-daybreak"></span><span>Daybreak<small>Warm and airy</small></span>
             </button>
@@ -71,7 +74,15 @@
       </div>
     </section>
 
-    <section class="dashboard-grid" aria-label="Live briefing">
+    <nav class="mobile-tabs" id="mobileTabs" aria-label="Dashboard sections">
+      <button type="button" data-mobile-view-value="weather" aria-selected="true"><span>☀</span>Weather</button>
+      <button type="button" data-mobile-view-value="markets" aria-selected="false"><span>↗</span>Markets</button>
+      <button type="button" data-mobile-view-value="traffic" aria-selected="false"><span>⇄</span>Traffic</button>
+      <button type="button" data-mobile-view-value="world" aria-selected="false"><span>◷</span>Clocks</button>
+      <button type="button" data-mobile-view-value="forecast" aria-selected="false"><span>▦</span>Week</button>
+    </nav>
+
+    <section class="dashboard-grid" data-mobile-view="weather" aria-label="Live briefing">
       <article class="panel weather-panel is-loading" data-detail="weather" tabindex="0" role="button" aria-label="Open detailed weather">
         <div class="skeleton-layer skeleton-weather" aria-hidden="true">
           <span class="skeleton-short"></span><span class="skeleton-medium"></span>
@@ -208,6 +219,6 @@
 
   <script>window.__PRELOADED_DASHBOARD__ = null;</script>
   <script src="config.js"></script>
-  <script type="module" src="app-v2.js?v=20260727-3"></script>
+  <script type="module" src="app-v2.js?v=20260728-3"></script>
 </body>
 </html>

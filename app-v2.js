@@ -4,6 +4,7 @@ const API_BASE = (IS_LOCAL_PREVIEW ? window.location.origin : (CONFIG.dataApiBas
 const TIMEZONE = CONFIG.timezone || "America/Chicago";
 const NAME = CONFIG.name || "Altay";
 const THEME_KEY = "altay_dashboard_theme";
+const THEME_MODE_KEY = "altay_dashboard_theme_mode";
 const TIME_KEY = "altay_dashboard_time_format";
 const SNAPSHOT_KEY = "altay_dashboard_snapshot_v3";
 const THEMES = {
@@ -25,9 +26,12 @@ const DETAIL_CLOCKS = [
 ];
 let currentSnapshot = null;
 let hasRenderedSnapshot = false;
+let themeMode = "auto";
+let solarSchedule = null;
 
 const $ = (id) => document.getElementById(id);
 const number = (value) => {
+  if (value == null || value === "") return null;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
 };
@@ -83,6 +87,26 @@ function dateParts(date = new Date(), timezone = TIMEZONE) {
   }).formatToParts(date).filter((part) => part.type !== "literal").map((part) => [part.type, part.value]));
 }
 
+function timeStringMinutes(value) {
+  const match = String(value || "").match(/T(\d{2}):(\d{2})/);
+  return match ? Number(match[1]) * 60 + Number(match[2]) : null;
+}
+
+function automaticThemeForNow() {
+  const parts = dateParts();
+  const nowMinutes = (Number(parts.hour) % 24) * 60 + Number(parts.minute);
+  const sunrise = timeStringMinutes(solarSchedule?.sunrise) ?? 7 * 60;
+  const sunset = timeStringMinutes(solarSchedule?.sunset) ?? 20 * 60;
+  return nowMinutes < sunrise || nowMinutes >= sunset ? "afterdark" : "daybreak";
+}
+
+function updateAutomaticTheme() {
+  if (themeMode !== "auto" || document.body.classList.contains("is-eink-route")) return;
+  const next = automaticThemeForNow();
+  if (document.documentElement.dataset.theme !== next) setTheme(next, false);
+  $("themeButtonLabel").textContent = next === "afterdark" ? "Auto · Night" : "Auto · Day";
+}
+
 function tickClock() {
   const parts = dateParts();
   const hour = Number(parts.hour) % 24;
@@ -91,6 +115,7 @@ function tickClock() {
   $("localSeconds").textContent = parts.second;
   $("greeting").textContent = `${hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : hour < 21 ? "Good evening" : "Good night"}, ${NAME}.`;
   renderWorldClocks();
+  updateAutomaticTheme();
 }
 
 let use24Hour = localStorage.getItem(TIME_KEY) !== "12";
@@ -122,18 +147,39 @@ function lineGeometry(values, width, height, pad = 5) {
     const y = height - pad - ((value - min) / span) * (height - pad * 2);
     return { x, y };
   });
+  const curve = points.reduce((path, point, index) => {
+    if (index === 0) return `M${point.x.toFixed(2)},${point.y.toFixed(2)}`;
+    const previous = points[index - 1];
+    const beforePrevious = points[index - 2] || previous;
+    const next = points[index + 1] || point;
+    const control1 = {
+      x: previous.x + (point.x - beforePrevious.x) / 6,
+      y: previous.y + (point.y - beforePrevious.y) / 6
+    };
+    const control2 = {
+      x: point.x - (next.x - previous.x) / 6,
+      y: point.y - (next.y - previous.y) / 6
+    };
+    return `${path} C${control1.x.toFixed(2)},${control1.y.toFixed(2)} ${control2.x.toFixed(2)},${control2.y.toFixed(2)} ${point.x.toFixed(2)},${point.y.toFixed(2)}`;
+  }, "");
+  const baseline = height - pad;
   return {
     min,
     max,
     points,
+    curve,
     polyline: points.map(({ x, y }) => `${x.toFixed(2)},${y.toFixed(2)}`).join(" "),
-    area: `M${points[0].x.toFixed(2)},${height} L${points.map(({ x, y }) => `${x.toFixed(2)},${y.toFixed(2)}`).join(" L")} L${points.at(-1).x.toFixed(2)},${height} Z`
+    area: `M${points[0].x.toFixed(2)},${baseline} L${points[0].x.toFixed(2)},${points[0].y.toFixed(2)} ${curve.slice(curve.indexOf(" C"))} L${points.at(-1).x.toFixed(2)},${baseline} Z`
   };
 }
 
 function renderWeatherChart(hourly) {
-  const values = (hourly?.temperature_2m || []).slice(0, 12);
-  const times = (hourly?.time || []).slice(0, 12);
+  const samples = (hourly?.time || []).map((time, index) => ({
+    time,
+    value: number(hourly?.temperature_2m?.[index])
+  })).filter((sample) => sample.value != null).slice(0, 12);
+  const values = samples.map((sample) => sample.value);
+  const times = samples.map((sample) => sample.time);
   const geometry = lineGeometry(values, 560, 118, 8);
   if (!geometry) {
     $("weatherChart").innerHTML = '<p class="panel-note">Hourly trend unavailable.</p>';
@@ -145,11 +191,11 @@ function renderWeatherChart(hourly) {
   $("weatherChart").innerHTML = `
     <svg viewBox="0 0 560 118" preserveAspectRatio="none" role="img" aria-label="Temperatures from ${Math.round(geometry.min)} to ${Math.round(geometry.max)} degrees">
       <defs><linearGradient id="weatherArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--accent)"/><stop offset="1" stop-color="var(--accent)" stop-opacity="0"/></linearGradient></defs>
-      <path class="chart-guide" d="M8 58H552"></path>
+      <path class="chart-guide" d="M8 8H552 M8 59H552 M8 110H552"></path>
       <path class="chart-area" d="${geometry.area}"></path>
-      <polyline class="chart-line" points="${geometry.polyline}"></polyline>${dots}
+      <path class="chart-line" d="${geometry.curve}"></path>${dots}
     </svg>`;
-  $("weatherRange").textContent = `${Math.round(geometry.min)}° — ${Math.round(geometry.max)}°`;
+  $("weatherRange").textContent = `${Math.round(geometry.max)}° HIGH · ${Math.round(geometry.min)}° LOW`;
   const shown = times.filter((_, index) => index % 2 === 0).slice(0, 6);
   $("weatherTimes").innerHTML = shown.map((time) => {
     const label = new Intl.DateTimeFormat("en-US", { hour: "numeric", timeZone: TIMEZONE }).format(new Date(time));
@@ -161,6 +207,10 @@ function renderWeather(weather) {
   const current = weather?.current || {};
   const daily = weather?.daily || {};
   const code = number(current.weather_code) ?? 3;
+  solarSchedule = {
+    sunrise: daily.sunrise?.[0] || null,
+    sunset: daily.sunset?.[0] || null
+  };
   document.documentElement.dataset.weather = weatherKind(code, current.is_day !== 0);
   $("locationLabel").textContent = weather?.location?.label === "Default" ? "Chicago, IL" : (weather?.location?.label || "Chicago, IL");
   $("weatherGlyph").textContent = weatherGlyph(code, current.is_day !== 0);
@@ -176,6 +226,7 @@ function renderWeather(weather) {
   $("weatherStatus").textContent = weather.stale ? "CACHED" : "LIVE";
   renderWeatherChart(weather.hourly);
   renderForecast(daily);
+  updateAutomaticTheme();
   document.querySelector(".weather-panel")?.classList.remove("is-loading");
 }
 
@@ -526,6 +577,21 @@ function initDetailPanels() {
   });
 }
 
+function initMobileTabs() {
+  const tabs = $("mobileTabs");
+  const grid = document.querySelector(".dashboard-grid");
+  if (!tabs || !grid) return;
+  tabs.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-mobile-view-value]");
+    if (!button) return;
+    const view = button.dataset.mobileViewValue;
+    grid.dataset.mobileView = view;
+    tabs.querySelectorAll("[data-mobile-view-value]").forEach((item) => {
+      item.setAttribute("aria-selected", String(item === button));
+    });
+  });
+}
+
 function setTheme(theme, persist = true) {
   const migratedTheme = theme === "field" ? "weather" : theme;
   const safeTheme = THEMES[migratedTheme] ? migratedTheme : "daybreak";
@@ -546,7 +612,15 @@ function initThemeMenu() {
   menu.addEventListener("click", (event) => {
     const choice = event.target.closest("[data-theme-value]");
     if (!choice) return;
-    setTheme(choice.dataset.themeValue);
+    if (choice.dataset.themeValue === "auto") {
+      themeMode = "auto";
+      localStorage.setItem(THEME_MODE_KEY, "auto");
+      updateAutomaticTheme();
+    } else {
+      themeMode = "fixed";
+      localStorage.setItem(THEME_MODE_KEY, "fixed");
+      setTheme(choice.dataset.themeValue);
+    }
     menu.hidden = true;
     button.setAttribute("aria-expanded", "false");
   });
@@ -560,9 +634,13 @@ function initThemeMenu() {
 
 document.addEventListener("DOMContentLoaded", () => {
   const forcedEink = document.body.classList.contains("is-eink-route");
-  setTheme(forcedEink ? "eink" : (localStorage.getItem(THEME_KEY) || "daybreak"), false);
+  themeMode = forcedEink ? "fixed" : (localStorage.getItem(THEME_MODE_KEY) || "auto");
+  if (forcedEink) setTheme("eink", false);
+  else if (themeMode === "auto") updateAutomaticTheme();
+  else setTheme(localStorage.getItem(THEME_KEY) || "daybreak", false);
   initThemeMenu();
   initDetailPanels();
+  initMobileTabs();
   tickClock();
   setInterval(tickClock, 1000);
   $("timeFormatButton").addEventListener("click", () => {

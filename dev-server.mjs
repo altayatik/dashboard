@@ -7,6 +7,11 @@ const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.DASHBOARD_PORT || 8000);
 const HOST = "127.0.0.1";
 const UPSTREAM = "https://dashboard-data-api.vercel.app";
+const LOCAL_SERVICES = {
+  weather: () => import("../dashboard-data-api/services/weather.js").then(({ getWeather }) => getWeather()),
+  markets: () => import("../dashboard-data-api/services/markets.js").then(({ getMarkets }) => getMarkets()),
+  traffic: () => import("../dashboard-data-api/services/traffic.js").then(({ getTraffic }) => getTraffic())
+};
 const MIME = {
   ".css": "text/css; charset=utf-8",
   ".html": "text/html; charset=utf-8",
@@ -29,6 +34,9 @@ function extractPayload(text, kind) {
 }
 
 async function upstreamData(kind) {
+  if (process.env.DASHBOARD_USE_REMOTE !== "1" && LOCAL_SERVICES[kind]) {
+    return LOCAL_SERVICES[kind]();
+  }
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), kind === "markets" ? 10000 : 7000);
   try {
