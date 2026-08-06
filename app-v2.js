@@ -31,6 +31,8 @@ let themeMode = "auto";
 let solarSchedule = null;
 let screenWakeLock = null;
 let wakeLockRequest = null;
+let silkKeepAliveAudio = null;
+let silkKeepAliveActive = false;
 
 const $ = (id) => document.getElementById(id);
 const number = (value) => {
@@ -50,11 +52,22 @@ function setWakeLockState(state, label) {
   button.setAttribute("aria-pressed", String(state === "active"));
   button.setAttribute("aria-label", label);
   button.title = label;
+  const text = button.querySelector(".keep-awake-label");
+  if (text) text.textContent = state === "active" ? "AWAKE" : "DISPLAY";
+}
+
+function displayKeepAliveIsActive() {
+  return Boolean((screenWakeLock && !screenWakeLock.released) || silkKeepAliveActive);
+}
+
+function updateDisplayKeepAliveState(fallback = "needs-action") {
+  if (displayKeepAliveIsActive()) setWakeLockState("active", "Display keep-alive is active");
+  else setWakeLockState(fallback, fallback === "unsupported" ? "Keep awake is unavailable in this browser" : "Tap to keep display awake");
 }
 
 async function requestScreenWakeLock() {
   if (!("wakeLock" in navigator)) {
-    setWakeLockState("unsupported", "Keep awake is unavailable in this browser");
+    updateDisplayKeepAliveState("unsupported");
     return false;
   }
   if (document.visibilityState !== "visible") return false;
@@ -65,14 +78,14 @@ async function requestScreenWakeLock() {
   setWakeLockState("ready", "Requesting display wake lock");
   wakeLockRequest = navigator.wakeLock.request("screen").then((sentinel) => {
     screenWakeLock = sentinel;
-    setWakeLockState("active", "Display will stay awake");
+    updateDisplayKeepAliveState();
     sentinel.addEventListener("release", () => {
       if (screenWakeLock === sentinel) screenWakeLock = null;
-      setWakeLockState("needs-action", "Tap to keep display awake");
+      updateDisplayKeepAliveState();
     });
     return true;
   }).catch(() => {
-    setWakeLockState("needs-action", "Tap to keep display awake");
+    updateDisplayKeepAliveState();
     return false;
   }).finally(() => {
     wakeLockRequest = null;
@@ -80,28 +93,98 @@ async function requestScreenWakeLock() {
   return wakeLockRequest;
 }
 
+function silentWavUrl(seconds = 12) {
+  const sampleRate = 8000;
+  const sampleCount = sampleRate * seconds;
+  const buffer = new ArrayBuffer(44 + sampleCount);
+  const view = new DataView(buffer);
+  const write = (offset, value) => [...value].forEach((char, index) => view.setUint8(offset + index, char.charCodeAt(0)));
+  write(0, "RIFF");
+  view.setUint32(4, 36 + sampleCount, true);
+  write(8, "WAVEfmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate, true);
+  view.setUint16(32, 1, true);
+  view.setUint16(34, 8, true);
+  write(36, "data");
+  view.setUint32(40, sampleCount, true);
+  new Uint8Array(buffer, 44).fill(128);
+  return URL.createObjectURL(new Blob([buffer], { type: "audio/wav" }));
+}
+
+async function startSilkMediaKeepAlive() {
+  if (!silkKeepAliveAudio) {
+    silkKeepAliveAudio = document.createElement("audio");
+    silkKeepAliveAudio.className = "silk-keep-alive";
+    silkKeepAliveAudio.preload = "auto";
+    silkKeepAliveAudio.playsInline = true;
+    silkKeepAliveAudio.muted = true;
+    silkKeepAliveAudio.src = silentWavUrl();
+    silkKeepAliveAudio.addEventListener("playing", () => {
+      silkKeepAliveActive = true;
+      updateDisplayKeepAliveState();
+    });
+    silkKeepAliveAudio.addEventListener("pause", () => {
+      silkKeepAliveActive = false;
+      updateDisplayKeepAliveState();
+    });
+    silkKeepAliveAudio.addEventListener("ended", () => {
+      silkKeepAliveActive = false;
+      silkKeepAliveAudio.currentTime = 0;
+      silkKeepAliveAudio.play().catch(() => updateDisplayKeepAliveState());
+    });
+    document.body.appendChild(silkKeepAliveAudio);
+  }
+  try {
+    await silkKeepAliveAudio.play();
+    return true;
+  } catch {
+    updateDisplayKeepAliveState();
+    return false;
+  }
+}
+
 function initScreenWakeLock() {
   const button = $("keepAwakeButton");
   if (!button) return;
-  const isSilk = /\bSilk\//i.test(navigator.userAgent);
+  const isSilk = /\bSilk\//i.test(navigator.userAgent) || new URLSearchParams(window.location.search).get("display") === "echo";
   let enabled = isSilk || localStorage.getItem(KEEP_AWAKE_KEY) === "1";
 
   button.addEventListener("click", () => {
     enabled = true;
     localStorage.setItem(KEEP_AWAKE_KEY, "1");
     requestScreenWakeLock();
+    if (isSilk) {
+      silkKeepAliveAudio && (silkKeepAliveAudio.muted = false);
+      startSilkMediaKeepAlive();
+    }
   });
   document.addEventListener("visibilitychange", () => {
-    if (enabled && document.visibilityState === "visible") requestScreenWakeLock();
+    if (enabled && document.visibilityState === "visible") {
+      requestScreenWakeLock();
+      if (isSilk) startSilkMediaKeepAlive();
+    }
   });
   document.addEventListener("pointerdown", () => {
-    if (enabled && !screenWakeLock) requestScreenWakeLock();
+    if (!enabled) return;
+    if (!screenWakeLock) requestScreenWakeLock();
+    if (isSilk) {
+      silkKeepAliveAudio && (silkKeepAliveAudio.muted = false);
+      startSilkMediaKeepAlive();
+    }
   }, { once: true, capture: true });
   window.setInterval(() => {
     if (enabled && document.visibilityState === "visible" && !screenWakeLock) requestScreenWakeLock();
+    if (enabled && isSilk && document.visibilityState === "visible" && (!silkKeepAliveAudio || silkKeepAliveAudio.paused)) startSilkMediaKeepAlive();
   }, 60 * 1000);
 
-  if (enabled) requestScreenWakeLock();
+  if (enabled) {
+    requestScreenWakeLock();
+    if (isSilk) startSilkMediaKeepAlive();
+  }
   else if (!("wakeLock" in navigator)) setWakeLockState("unsupported", "Keep awake is unavailable in this browser");
 }
 

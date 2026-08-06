@@ -273,7 +273,7 @@ html[data-theme="weather"][data-weather="snow"] .weather-precip {
   letter-spacing: .12em;
 }
 
-.location-pill, .theme-button, .icon-button, .quiet-button {
+.location-pill, .theme-button, .icon-button, .quiet-button, .keep-awake-button {
   border: 1px solid var(--line);
   background: color-mix(in srgb, var(--surface-solid) 74%, transparent);
   backdrop-filter: blur(16px);
@@ -324,29 +324,41 @@ html[data-theme="weather"][data-weather="snow"] .weather-precip {
   font: 21px var(--sans);
 }
 .icon-button.is-spinning { animation: spin .7s linear infinite; }
-.icon-button.keep-awake-button {
+.keep-awake-button {
   position: relative;
   z-index: 2;
   flex: 0 0 auto;
-  width: auto;
-  min-width: 38px;
+  min-height: 38px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
-  padding: 0 11px;
-  font: 500 9px var(--mono);
-  letter-spacing: .08em;
+  gap: 8px;
+  padding: 0 12px;
+  border-radius: 999px;
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform .2s ease, border-color .2s ease, background .2s ease;
 }
-.keep-awake-button > span:first-child { font-size: 14px; }
+.keep-awake-button:hover { transform: translateY(-1px); border-color: color-mix(in srgb, var(--accent) 48%, var(--line)); }
+.keep-awake-button:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 35%, transparent); outline-offset: 2px; }
+.keep-awake-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--muted) 10%, transparent);
+}
 .keep-awake-button[data-state="active"] {
-  color: var(--positive);
+  color: var(--ink);
   border-color: color-mix(in srgb, var(--positive) 42%, var(--line));
-  background: color-mix(in srgb, var(--positive) 10%, transparent);
-  box-shadow: 0 0 0 5px color-mix(in srgb, var(--positive) 8%, transparent);
+  background: color-mix(in srgb, var(--positive) 8%, var(--surface-solid));
 }
-.keep-awake-button[data-state="needs-action"] { color: var(--accent); }
+.keep-awake-button[data-state="active"] .keep-awake-dot { background: var(--positive); box-shadow: 0 0 0 4px color-mix(in srgb, var(--positive) 12%, transparent); animation: pulse 2.4s ease-out infinite; }
+.keep-awake-button[data-state="needs-action"] .keep-awake-dot { background: var(--accent); }
 .keep-awake-button[data-state="unsupported"] { color: var(--muted); opacity: .58; }
+.silk-keep-alive { position: fixed; width: 1px; height: 1px; opacity: .001; pointer-events: none; }
 
 .theme-control { position: relative; }
 .theme-button {
@@ -770,7 +782,7 @@ html[data-theme="eink"] body {
 html[data-theme="eink"] .ambient { display: none; }
 html[data-theme="eink"] .panel, html[data-theme="eink"] .location-pill,
 html[data-theme="eink"] .theme-button, html[data-theme="eink"] .icon-button,
-html[data-theme="eink"] .quiet-button {
+html[data-theme="eink"] .quiet-button, html[data-theme="eink"] .keep-awake-button {
   border-width: 2px;
   backdrop-filter: none;
 }
@@ -814,7 +826,7 @@ html[data-theme="eink"] *, html[data-theme="eink"] *::before, html[data-theme="e
   }
   .topbar { min-height: 42px; }
   .topbar { grid-template-columns: 1fr auto; }
-  .icon-button.keep-awake-button { width: 38px; padding: 0; }
+  .keep-awake-button { width: 38px; min-height: 38px; padding: 0; }
   .keep-awake-label { display: none; }
   .location-pill, .last-sync { display: none; }
   .intro { min-height: 0; padding: 10px 3px 10px; align-items: flex-end; }
