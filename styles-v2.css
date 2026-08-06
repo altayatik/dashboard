@@ -556,10 +556,10 @@ html[data-theme="weather"][data-weather="snow"] .weather-precip {
 .metric-row strong { display: block; overflow: hidden; font: 500 11px var(--mono); text-overflow: ellipsis; white-space: nowrap; }
 
 .market-panel, .commute-panel, .world-panel { min-height: 0; }
-.market-panel { grid-column: 6 / span 4; grid-row: 1; padding: 20px 22px; }
+.market-panel { grid-column: 6 / span 4; grid-row: 1; display: flex; flex-direction: column; padding: 18px 22px; }
 .commute-panel { grid-column: 10 / span 3; grid-row: 1; }
 .world-panel { grid-column: 6 / span 3; grid-row: 2; }
-.market-feature { display: grid; grid-template-columns: 1fr 1.2fr; gap: 10px; align-items: end; margin-top: 13px; }
+.market-feature { display: grid; grid-template-columns: 1fr 1.2fr; gap: 10px; align-items: end; margin-top: 9px; }
 .market-feature p { margin: 0; }
 .market-feature p strong { margin-right: 7px; font-size: 13px; }
 .market-feature p span { color: var(--muted); font-size: 9px; }
@@ -567,16 +567,18 @@ html[data-theme="weather"][data-weather="snow"] .weather-precip {
 .delta { color: var(--muted); font: 500 10px var(--mono); }
 .delta.positive, .ticker-row em.positive { color: var(--positive); }
 .delta.negative, .ticker-row em.negative { color: var(--negative); }
-.mini-chart { height: 57px; }
+.mini-chart { height: 52px; }
 .market-line { fill: none; stroke: var(--accent); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 .market-area { fill: color-mix(in srgb, var(--accent) 14%, transparent); }
-.ticker-list { margin-top: 10px; border-top: 1px solid var(--line); }
-.ticker-row { display: grid; grid-template-columns: 1fr auto 58px; gap: 12px; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--line); }
+.ticker-list { flex: 0 0 auto; margin-top: 7px; border-top: 1px solid var(--line); }
+.ticker-row { display: grid; grid-template-columns: 1fr auto 58px; gap: 12px; align-items: center; padding: 5px 0; border-bottom: 1px solid var(--line); }
+.ticker-row:last-child { padding-bottom: 2px; border-bottom: 0; }
 .ticker-row span { font-size: 11px; font-weight: 750; }
 .ticker-row b, .ticker-row em { font: 500 10px var(--mono); font-style: normal; text-align: right; }
 .ticker-row em { color: var(--muted); }
 .panel-note { margin: 12px 0 0; color: var(--muted); font-size: 9px; line-height: 1.4; }
 .market-panel .panel-note { display: none; }
+.market-panel::after { display: none; }
 
 .route-list { display: grid; gap: 17px; margin-top: 28px; }
 .route { display: grid; grid-template-columns: 56px 1fr 50px; gap: 12px; align-items: center; }
@@ -924,9 +926,11 @@ html[data-theme="eink"] *, html[data-theme="eink"] *::before, html[data-theme="e
   .weather-chart { padding-top: 16px; }
   .chart-canvas { height: 82px; }
   .metric-row { margin-top: 12px; padding-top: 12px; }
-  .market-feature { margin-top: 12px; }
-  .ticker-list { margin-top: 10px; }
-  .ticker-row { padding: 7px 0; }
+  .market-feature { margin-top: 7px; }
+  .mini-chart { height: 48px; }
+  .ticker-list { margin-top: 5px; }
+  .ticker-row { padding: 4px 0; }
+  .ticker-row:last-child { padding-bottom: 1px; }
   .panel-note { margin-top: 7px; }
   .route-list { gap: 11px; margin-top: 16px; }
   .reversible { margin-top: 13px; padding-top: 11px; }
