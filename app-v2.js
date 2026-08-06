@@ -7,6 +7,7 @@ const THEME_KEY = "altay_dashboard_theme";
 const THEME_MODE_KEY = "altay_dashboard_theme_mode";
 const TIME_KEY = "altay_dashboard_time_format";
 const SNAPSHOT_KEY = "altay_dashboard_snapshot_v3";
+const KEEP_AWAKE_KEY = "altay_dashboard_keep_awake";
 const THEMES = {
   daybreak: "Daybreak",
   afterdark: "After dark",
@@ -28,6 +29,8 @@ let currentSnapshot = null;
 let hasRenderedSnapshot = false;
 let themeMode = "auto";
 let solarSchedule = null;
+let screenWakeLock = null;
+let wakeLockRequest = null;
 
 const $ = (id) => document.getElementById(id);
 const number = (value) => {
@@ -39,6 +42,68 @@ const round = (value, fallback = "—") => number(value) == null ? fallback : Ma
 const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
   "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
 })[char]);
+
+function setWakeLockState(state, label) {
+  const button = $("keepAwakeButton");
+  if (!button) return;
+  button.dataset.state = state;
+  button.setAttribute("aria-pressed", String(state === "active"));
+  button.setAttribute("aria-label", label);
+  button.title = label;
+}
+
+async function requestScreenWakeLock() {
+  if (!("wakeLock" in navigator)) {
+    setWakeLockState("unsupported", "Keep awake is unavailable in this browser");
+    return false;
+  }
+  if (document.visibilityState !== "visible") return false;
+  if (screenWakeLock?.released) screenWakeLock = null;
+  if (screenWakeLock) return true;
+  if (wakeLockRequest) return wakeLockRequest;
+
+  setWakeLockState("ready", "Requesting display wake lock");
+  wakeLockRequest = navigator.wakeLock.request("screen").then((sentinel) => {
+    screenWakeLock = sentinel;
+    setWakeLockState("active", "Display will stay awake");
+    sentinel.addEventListener("release", () => {
+      if (screenWakeLock === sentinel) screenWakeLock = null;
+      setWakeLockState("needs-action", "Tap to keep display awake");
+    });
+    return true;
+  }).catch(() => {
+    setWakeLockState("needs-action", "Tap to keep display awake");
+    return false;
+  }).finally(() => {
+    wakeLockRequest = null;
+  });
+  return wakeLockRequest;
+}
+
+function initScreenWakeLock() {
+  const button = $("keepAwakeButton");
+  if (!button) return;
+  const isSilk = /\bSilk\//i.test(navigator.userAgent);
+  let enabled = isSilk || localStorage.getItem(KEEP_AWAKE_KEY) === "1";
+
+  button.addEventListener("click", () => {
+    enabled = true;
+    localStorage.setItem(KEEP_AWAKE_KEY, "1");
+    requestScreenWakeLock();
+  });
+  document.addEventListener("visibilitychange", () => {
+    if (enabled && document.visibilityState === "visible") requestScreenWakeLock();
+  });
+  document.addEventListener("pointerdown", () => {
+    if (enabled && !screenWakeLock) requestScreenWakeLock();
+  }, { once: true, capture: true });
+  window.setInterval(() => {
+    if (enabled && document.visibilityState === "visible" && !screenWakeLock) requestScreenWakeLock();
+  }, 60 * 1000);
+
+  if (enabled) requestScreenWakeLock();
+  else if (!("wakeLock" in navigator)) setWakeLockState("unsupported", "Keep awake is unavailable in this browser");
+}
 
 function weatherText(code) {
   if (code === 0) return "Clear sky";
@@ -641,6 +706,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initThemeMenu();
   initDetailPanels();
   initMobileTabs();
+  initScreenWakeLock();
   tickClock();
   setInterval(tickClock, 1000);
   $("timeFormatButton").addEventListener("click", () => {

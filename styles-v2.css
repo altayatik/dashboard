@@ -324,6 +324,26 @@ html[data-theme="weather"][data-weather="snow"] .weather-precip {
   font: 21px var(--sans);
 }
 .icon-button.is-spinning { animation: spin .7s linear infinite; }
+.icon-button.keep-awake-button {
+  width: auto;
+  min-width: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 11px;
+  font: 500 9px var(--mono);
+  letter-spacing: .08em;
+}
+.keep-awake-button > span:first-child { font-size: 14px; }
+.keep-awake-button[data-state="active"] {
+  color: var(--positive);
+  border-color: color-mix(in srgb, var(--positive) 42%, var(--line));
+  background: color-mix(in srgb, var(--positive) 10%, transparent);
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--positive) 8%, transparent);
+}
+.keep-awake-button[data-state="needs-action"] { color: var(--accent); }
+.keep-awake-button[data-state="unsupported"] { color: var(--muted); opacity: .58; }
 
 .theme-control { position: relative; }
 .theme-button {
@@ -791,6 +811,8 @@ html[data-theme="eink"] *, html[data-theme="eink"] *::before, html[data-theme="e
   }
   .topbar { min-height: 42px; }
   .topbar { grid-template-columns: 1fr auto; }
+  .icon-button.keep-awake-button { width: 38px; padding: 0; }
+  .keep-awake-label { display: none; }
   .location-pill, .last-sync { display: none; }
   .intro { min-height: 0; padding: 10px 3px 10px; align-items: flex-end; }
   .intro .eyebrow { margin-bottom: 10px; }
