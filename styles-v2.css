@@ -325,6 +325,9 @@ html[data-theme="weather"][data-weather="snow"] .weather-precip {
 }
 .icon-button.is-spinning { animation: spin .7s linear infinite; }
 .icon-button.keep-awake-button {
+  position: relative;
+  z-index: 2;
+  flex: 0 0 auto;
   width: auto;
   min-width: 38px;
   display: inline-flex;

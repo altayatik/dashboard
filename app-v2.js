@@ -105,6 +105,29 @@ function initScreenWakeLock() {
   else if (!("wakeLock" in navigator)) setWakeLockState("unsupported", "Keep awake is unavailable in this browser");
 }
 
+function initBuildFreshness() {
+  const currentBuild = document.documentElement.dataset.build;
+  if (!currentBuild) return;
+  const versionPath = document.body.classList.contains("is-eink-route") ? "../version.json" : "version.json";
+  const check = async () => {
+    try {
+      const url = new URL(versionPath, window.location.href);
+      url.searchParams.set("t", String(Date.now()));
+      const response = await fetch(url, { cache: "no-store" });
+      if (!response.ok) return;
+      const latest = await response.json();
+      if (!latest?.build || latest.build === currentBuild) return;
+      const destination = new URL(window.location.href);
+      destination.searchParams.set("build", latest.build);
+      window.location.replace(destination);
+    } catch {
+      // The dashboard remains usable when the version check is offline.
+    }
+  };
+  window.setInterval(check, 5 * 60 * 1000);
+  check();
+}
+
 function weatherText(code) {
   if (code === 0) return "Clear sky";
   if (code <= 2) return "Mostly clear";
@@ -707,6 +730,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initDetailPanels();
   initMobileTabs();
   initScreenWakeLock();
+  initBuildFreshness();
   tickClock();
   setInterval(tickClock, 1000);
   $("timeFormatButton").addEventListener("click", () => {
