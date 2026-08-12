@@ -410,22 +410,30 @@ html[data-route="echo"] .market-area { animation: market-area-in .2s .65s ease-o
 
 html[data-route="echo"] .ticker-list {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1.08fr) repeat(2, minmax(0, .96fr));
   gap: clamp(6px, 1.11vmin, 12px);
   margin-top: clamp(5px, .93vmin, 10px);
   border: 0;
 }
 
 html[data-route="echo"] .ticker-row {
-  grid-template-columns: 1fr auto;
-  gap: clamp(4px, .74vmin, 8px);
-  padding: clamp(7px, 1.3vmin, 14px) clamp(8px, 1.48vmin, 16px);
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: clamp(2px, .37vmin, 4px);
+  padding: clamp(7px, 1.3vmin, 14px) clamp(5px, .93vmin, 10px);
   border: 1px solid var(--line);
   border-radius: clamp(10px, 1.85vmin, 20px);
 }
-html[data-route="echo"] .ticker-row span { font-size: clamp(14px, 2.59vmin, 28px); }
+html[data-route="echo"] .ticker-row span {
+  min-width: 0;
+  font-size: clamp(13px, 2.41vmin, 26px);
+  white-space: nowrap;
+}
 html[data-route="echo"] .ticker-row b { display: none; }
-html[data-route="echo"] .ticker-row em { font-size: clamp(13px, 2.41vmin, 26px); }
+html[data-route="echo"] .ticker-row em {
+  font-size: clamp(11px, 2.04vmin, 22px);
+  letter-spacing: -.035em;
+  white-space: nowrap;
+}
 
 html[data-route="echo"] .route-list {
   display: grid;
