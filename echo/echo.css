@@ -179,18 +179,6 @@ html[data-route="echo"] .status-chip,
 html[data-route="echo"] .market-state,
 html[data-route="echo"] .tiny-time { display: none; }
 
-html[data-route="echo"] .weather-panel .panel-kicker {
-  display: block;
-  margin: 0 0 clamp(5px, .93vmin, 10px);
-  font-size: clamp(11px, 2.04vmin, 22px);
-  letter-spacing: .12em;
-}
-
-html[data-route="echo"] .weather-glyph {
-  margin-right: clamp(4px, .74vmin, 8px);
-  font-size: clamp(18px, 3.33vmin, 36px);
-}
-
 html[data-route="echo"] .weather-now {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
