@@ -1,13 +1,18 @@
 const CONFIG = window.DASH_CONFIG || {};
+const APP_ROUTE = document.documentElement.dataset.route || "dashboard";
+const IS_ECHO_ROUTE = APP_ROUTE === "echo";
+const IS_EINK_ROUTE = APP_ROUTE === "eink" || document.body.classList.contains("is-eink-route");
+const APP_ROOT_URL = new URL("./", import.meta.url);
 const IS_LOCAL_PREVIEW = ["127.0.0.1", "localhost"].includes(window.location.hostname);
 const API_BASE = (CONFIG.dataApiBase || "https://dashboard-data-api.vercel.app").replace(/\/$/, "");
 const TIMEZONE = CONFIG.timezone || "America/Chicago";
 const NAME = CONFIG.name || "Altay";
-const THEME_KEY = "altay_dashboard_theme";
-const THEME_MODE_KEY = "altay_dashboard_theme_mode";
-const TIME_KEY = "altay_dashboard_time_format";
+const ROUTE_KEY_SUFFIX = IS_ECHO_ROUTE ? "_echo" : "";
+const THEME_KEY = `altay_dashboard_theme${ROUTE_KEY_SUFFIX}`;
+const THEME_MODE_KEY = `altay_dashboard_theme_mode${ROUTE_KEY_SUFFIX}`;
+const TIME_KEY = `altay_dashboard_time_format${ROUTE_KEY_SUFFIX}`;
 const SNAPSHOT_KEY = "altay_dashboard_snapshot_v3";
-const KEEP_AWAKE_KEY = "altay_dashboard_keep_awake";
+const KEEP_AWAKE_KEY = `altay_dashboard_keep_awake${ROUTE_KEY_SUFFIX}`;
 const SUNNYDAY_SCORE_KEY = "sunnyday:score-bridge:v1";
 const SUNNYDAY_URL = "https://altayatik.com/sunnyday/";
 const THEMES = {
@@ -153,7 +158,7 @@ async function startSilkMediaKeepAlive() {
 function initScreenWakeLock() {
   const button = $("keepAwakeButton");
   if (!button) return;
-  const isSilk = /\bSilk\//i.test(navigator.userAgent) || new URLSearchParams(window.location.search).get("display") === "echo";
+  const isSilk = /\bSilk\//i.test(navigator.userAgent) || IS_ECHO_ROUTE;
   let enabled = isSilk || localStorage.getItem(KEEP_AWAKE_KEY) === "1";
 
   button.addEventListener("click", () => {
@@ -194,10 +199,9 @@ function initScreenWakeLock() {
 function initBuildFreshness() {
   const currentBuild = document.documentElement.dataset.build;
   if (!currentBuild) return;
-  const versionPath = document.body.classList.contains("is-eink-route") ? "../version.json" : "version.json";
   const check = async () => {
     try {
-      const url = new URL(versionPath, window.location.href);
+      const url = new URL("version.json", APP_ROOT_URL);
       url.searchParams.set("t", String(Date.now()));
       const response = await fetch(url, { cache: "no-store" });
       if (!response.ok) return;
@@ -275,7 +279,7 @@ function automaticThemeForNow() {
 }
 
 function updateAutomaticTheme() {
-  if (themeMode !== "auto" || document.body.classList.contains("is-eink-route")) return;
+  if (themeMode !== "auto" || IS_EINK_ROUTE) return;
   const next = automaticThemeForNow();
   if (document.documentElement.dataset.theme !== next) setTheme(next, false);
   $("themeButtonLabel").textContent = next === "afterdark" ? "Auto · Night" : "Auto · Day";
@@ -395,8 +399,9 @@ function renderWeatherChart(hourly) {
     </svg>`;
   animateChartLine(container);
   $("weatherRange").textContent = `${Math.round(geometry.max)}° HIGH · ${Math.round(geometry.min)}° LOW`;
-  const shown = Array.from({ length: Math.min(6, times.length) }, (_, index) => {
-    const sampleIndex = Math.round((index * (times.length - 1)) / Math.max(1, Math.min(6, times.length) - 1));
+  const labelCount = Math.min(IS_ECHO_ROUTE ? 4 : 6, times.length);
+  const shown = Array.from({ length: labelCount }, (_, index) => {
+    const sampleIndex = Math.round((index * (times.length - 1)) / Math.max(1, labelCount - 1));
     return times[sampleIndex];
   });
   $("weatherTimes").innerHTML = shown.map((time) => {
@@ -844,7 +849,7 @@ function setTheme(theme, persist = true) {
   document.documentElement.dataset.theme = safeTheme;
   document.querySelector('meta[name="theme-color"]')?.setAttribute("content", getComputedStyle(document.documentElement).getPropertyValue("--bg").trim());
   $("themeButtonLabel").textContent = THEMES[safeTheme];
-  if (persist && !document.body.classList.contains("is-eink-route")) localStorage.setItem(THEME_KEY, safeTheme);
+  if (persist && !IS_EINK_ROUTE) localStorage.setItem(THEME_KEY, safeTheme);
 }
 
 function initThemeMenu() {
@@ -879,7 +884,7 @@ function initThemeMenu() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  const forcedEink = document.body.classList.contains("is-eink-route");
+  const forcedEink = IS_EINK_ROUTE;
   themeMode = forcedEink ? "fixed" : (localStorage.getItem(THEME_MODE_KEY) || "auto");
   if (forcedEink) setTheme("eink", false);
   else if (themeMode === "auto") updateAutomaticTheme();
