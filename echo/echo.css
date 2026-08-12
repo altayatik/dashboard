@@ -11,6 +11,7 @@ html[data-route="echo"] body {
   width: 100vw;
   height: 100vh;
   height: 100dvh;
+  height: var(--echo-viewport-height, 100dvh);
   min-width: 0;
   overflow: hidden;
 }
@@ -20,6 +21,7 @@ html[data-route="echo"] .echo-shell {
   max-width: none;
   height: 100vh;
   height: 100dvh;
+  height: var(--echo-viewport-height, 100dvh);
   padding: clamp(12px, 2.22vmin, 24px) 0;
   grid-template-rows: clamp(88px, 16.3vmin, 176px) minmax(0, 1fr);
   gap: clamp(12px, 2.22vmin, 24px);
@@ -536,6 +538,29 @@ html[data-route="echo"][data-theme="afterdark"] .star-field-two {
 @keyframes echo-score-wait {
   from { opacity: .48; }
   to { opacity: 1; }
+}
+
+/* Silk keeps a persistent toolbar on Echo Show 15, leaving a roughly 2:1
+   content viewport. Compact only that short-landscape canvas; the 16:9
+   desktop preview keeps its room-scale proportions. */
+@media (min-aspect-ratio: 19/10) {
+  html[data-route="echo"] .echo-shell {
+    padding: 1.5vmin 0;
+    grid-template-rows: 15.5vmin minmax(0, 1fr);
+    gap: 1.5vmin;
+  }
+
+  html[data-route="echo"] .dashboard-grid { gap: 1.5vmin; }
+
+  html[data-route="echo"] .panel,
+  html[data-route="echo"] .skeleton-layer { padding: 2.45vmin; }
+
+  html[data-route="echo"] .chart-canvas { height: 16.75vmin; }
+
+  html[data-route="echo"] .reversible {
+    margin-top: .5vmin;
+    padding-top: .7vmin;
+  }
 }
 
 @media (max-width: 840px) {

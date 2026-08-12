@@ -53,6 +53,12 @@ const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
   "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
 })[char]);
 
+function syncEchoViewportHeight() {
+  if (!IS_ECHO_ROUTE) return;
+  const height = Math.round(window.visualViewport?.height || window.innerHeight);
+  if (height > 0) document.documentElement.style.setProperty("--echo-viewport-height", `${height}px`);
+}
+
 function setWakeLockState(state, label) {
   const button = $("keepAwakeButton");
   if (!button) return;
@@ -923,6 +929,7 @@ function initThemeMenu() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  syncEchoViewportHeight();
   const forcedEink = IS_EINK_ROUTE;
   themeMode = forcedEink ? "fixed" : IS_ECHO_ROUTE ? "auto" : (localStorage.getItem(THEME_MODE_KEY) || "auto");
   if (forcedEink) setTheme("eink", false);
@@ -952,6 +959,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setInterval(() => refreshDashboard({ background: true }), 5 * 60 * 1000);
   let chartResizeTimer = 0;
   window.addEventListener("resize", () => {
+    syncEchoViewportHeight();
     window.clearTimeout(chartResizeTimer);
     chartResizeTimer = window.setTimeout(() => {
       if (!currentSnapshot) return;
@@ -959,4 +967,5 @@ document.addEventListener("DOMContentLoaded", () => {
       renderMarkets(currentSnapshot.markets);
     }, 140);
   });
+  window.visualViewport?.addEventListener("resize", syncEchoViewportHeight);
 });
