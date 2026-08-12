@@ -555,7 +555,12 @@ html[data-route="echo"][data-theme="afterdark"] .star-field-two {
   html[data-route="echo"] .panel,
   html[data-route="echo"] .skeleton-layer { padding: 2.45vmin; }
 
-  html[data-route="echo"] .chart-canvas { height: 16.75vmin; }
+  html[data-route="echo"] .weather-panel .panel-head {
+    min-height: 0;
+    flex: 0 0 auto;
+  }
+
+  html[data-route="echo"] .chart-canvas { height: 12.5vmin; }
 
   html[data-route="echo"] .reversible {
     margin-top: .5vmin;
