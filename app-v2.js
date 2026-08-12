@@ -1,6 +1,6 @@
 const CONFIG = window.DASH_CONFIG || {};
 const IS_LOCAL_PREVIEW = ["127.0.0.1", "localhost"].includes(window.location.hostname);
-const API_BASE = (IS_LOCAL_PREVIEW ? window.location.origin : (CONFIG.dataApiBase || "https://dashboard-data-api.vercel.app")).replace(/\/$/, "");
+const API_BASE = (CONFIG.dataApiBase || "https://dashboard-data-api.vercel.app").replace(/\/$/, "");
 const TIMEZONE = CONFIG.timezone || "America/Chicago";
 const NAME = CONFIG.name || "Altay";
 const THEME_KEY = "altay_dashboard_theme";
@@ -31,6 +31,7 @@ let currentSnapshot = null;
 let hasRenderedSnapshot = false;
 let themeMode = "auto";
 let solarSchedule = null;
+let lastWorldClockMinute = "";
 let screenWakeLock = null;
 let wakeLockRequest = null;
 let silkKeepAliveAudio = null;
@@ -287,7 +288,11 @@ function tickClock() {
   $("localTime").textContent = `${parts.hour}:${parts.minute}`;
   $("localSeconds").textContent = parts.second;
   $("greeting").textContent = `${hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : hour < 21 ? "Good evening" : "Good night"}, ${NAME}.`;
-  renderWorldClocks();
+  const minuteKey = `${parts.year}-${parts.month}-${parts.day}-${parts.hour}-${parts.minute}-${use24Hour}`;
+  if (minuteKey !== lastWorldClockMinute) {
+    lastWorldClockMinute = minuteKey;
+    renderWorldClocks();
+  }
   updateAutomaticTheme();
 }
 
@@ -309,12 +314,16 @@ function renderWorldClocks() {
   $("timeFormatButton").textContent = use24Hour ? "24H" : "12H";
 }
 
-function lineGeometry(values, width, height, pad = 5) {
+function lineGeometry(values, width, height, pad = 5, minimumSpan = 0) {
   const clean = values.map(number).filter((value) => value != null);
   if (clean.length < 2) return null;
-  const min = Math.min(...clean);
-  const max = Math.max(...clean);
-  const span = max - min || 1;
+  const actualMin = Math.min(...clean);
+  const actualMax = Math.max(...clean);
+  const paddedSpan = Math.max(actualMax - actualMin, minimumSpan, 1);
+  const midpoint = (actualMax + actualMin) / 2;
+  const min = midpoint - paddedSpan / 2;
+  const max = midpoint + paddedSpan / 2;
+  const span = max - min;
   const points = clean.map((value, index) => {
     const x = pad + (index / (clean.length - 1)) * (width - pad * 2);
     const y = height - pad - ((value - min) / span) * (height - pad * 2);
@@ -337,13 +346,22 @@ function lineGeometry(values, width, height, pad = 5) {
   }, "");
   const baseline = height - pad;
   return {
-    min,
-    max,
+    min: actualMin,
+    max: actualMax,
     points,
     curve,
     polyline: points.map(({ x, y }) => `${x.toFixed(2)},${y.toFixed(2)}`).join(" "),
-    area: `M${points[0].x.toFixed(2)},${baseline} L${points[0].x.toFixed(2)},${points[0].y.toFixed(2)} ${curve.slice(curve.indexOf(" C"))} L${points.at(-1).x.toFixed(2)},${baseline} Z`
+    area: `M${points[0].x.toFixed(2)},${baseline} L${points[0].x.toFixed(2)},${points[0].y.toFixed(2)} ${curve.slice(curve.indexOf(" C"))} L${points[points.length - 1].x.toFixed(2)},${baseline} Z`
   };
+}
+
+function animateChartLine(container) {
+  const line = container?.querySelector(".chart-line, .market-line");
+  if (!line || typeof line.getTotalLength !== "function") return;
+  const length = Math.ceil(line.getTotalLength());
+  line.style.setProperty("--line-length", String(length));
+  line.getBoundingClientRect();
+  line.classList.add("is-drawing");
 }
 
 function renderWeatherChart(hourly) {
@@ -353,23 +371,34 @@ function renderWeatherChart(hourly) {
   })).filter((sample) => sample.value != null).slice(0, 12);
   const values = samples.map((sample) => sample.value);
   const times = samples.map((sample) => sample.time);
-  const geometry = lineGeometry(values, 560, 118, 8);
+  const container = $("weatherChart");
+  const width = Math.max(280, Math.round(container.clientWidth || 560));
+  const height = Math.max(78, Math.round(container.clientHeight || 118));
+  const pad = Math.max(6, Math.round(Math.min(width, height) * .055));
+  const geometry = lineGeometry(values, width, height, pad, 8);
   if (!geometry) {
-    $("weatherChart").innerHTML = '<p class="panel-note">Hourly trend unavailable.</p>';
+    container.innerHTML = '<p class="panel-note">Hourly trend unavailable.</p>';
     $("weatherTimes").innerHTML = "";
     return;
   }
   const dots = geometry.points.filter((_, index) => index === 0 || index === geometry.points.length - 1)
     .map(({ x, y }) => `<circle class="chart-dot" cx="${x}" cy="${y}" r="4"></circle>`).join("");
-  $("weatherChart").innerHTML = `
-    <svg viewBox="0 0 560 118" preserveAspectRatio="none" role="img" aria-label="Temperatures from ${Math.round(geometry.min)} to ${Math.round(geometry.max)} degrees">
+  const guideTop = pad;
+  const guideMiddle = height / 2;
+  const guideBottom = height - pad;
+  container.innerHTML = `
+    <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" role="img" aria-label="Temperatures from ${Math.round(geometry.min)} to ${Math.round(geometry.max)} degrees">
       <defs><linearGradient id="weatherArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--accent)"/><stop offset="1" stop-color="var(--accent)" stop-opacity="0"/></linearGradient></defs>
-      <path class="chart-guide" d="M8 8H552 M8 59H552 M8 110H552"></path>
+      <path class="chart-guide" vector-effect="non-scaling-stroke" d="M${pad} ${guideTop}H${width - pad} M${pad} ${guideMiddle}H${width - pad} M${pad} ${guideBottom}H${width - pad}"></path>
       <path class="chart-area" d="${geometry.area}"></path>
-      <path class="chart-line" d="${geometry.curve}"></path>${dots}
+      <path class="chart-line" vector-effect="non-scaling-stroke" d="${geometry.curve}"></path>${dots}
     </svg>`;
+  animateChartLine(container);
   $("weatherRange").textContent = `${Math.round(geometry.max)}° HIGH · ${Math.round(geometry.min)}° LOW`;
-  const shown = times.filter((_, index) => index % 2 === 0).slice(0, 6);
+  const shown = Array.from({ length: Math.min(6, times.length) }, (_, index) => {
+    const sampleIndex = Math.round((index * (times.length - 1)) / Math.max(1, Math.min(6, times.length) - 1));
+    return times[sampleIndex];
+  });
   $("weatherTimes").innerHTML = shown.map((time) => {
     const label = new Intl.DateTimeFormat("en-US", { hour: "numeric", timeZone: TIMEZONE }).format(new Date(time));
     return `<span>${esc(label)}</span>`;
@@ -447,19 +476,27 @@ function renderMarkets(markets) {
   const symbols = markets?.symbols || {};
   const spy = symbols.SPY || {};
   const spyHistory = marketSeries(spy, markets?.history?.SPY);
-  $("spyPrice").textContent = money(spy.price ?? spyHistory.at(-1));
-  const spyChange = number(spy.percent_change) ?? (spyHistory.length > 1 ? ((spyHistory.at(-1) - spyHistory.at(-2)) / spyHistory.at(-2)) * 100 : null);
+  const spyLast = spyHistory[spyHistory.length - 1];
+  const spyPrevious = spyHistory[spyHistory.length - 2];
+  $("spyPrice").textContent = money(spy.price ?? spyLast);
+  const spyChange = number(spy.percent_change) ?? (spyHistory.length > 1 ? ((spyLast - spyPrevious) / spyPrevious) * 100 : null);
   $("spyDelta").textContent = `${percent(spyChange)} today`;
   $("spyDelta").className = `delta ${spyChange > 0 ? "positive" : spyChange < 0 ? "negative" : ""}`;
 
-  const geometry = lineGeometry(spyHistory, 180, 60, 3);
-  $("spyChart").innerHTML = geometry ? `<svg viewBox="0 0 180 60" preserveAspectRatio="none" role="img" aria-label="SPY recent price trend"><path class="market-area" d="${geometry.area}"></path><polyline class="market-line" points="${geometry.polyline}"></polyline></svg>` : "";
+  const chart = $("spyChart");
+  const chartWidth = Math.max(140, Math.round(chart.clientWidth || 180));
+  const chartHeight = Math.max(48, Math.round(chart.clientHeight || 60));
+  const geometry = lineGeometry(spyHistory, chartWidth, chartHeight, 4, Math.abs(spyLast || 1) * .015);
+  chart.innerHTML = geometry ? `<svg viewBox="0 0 ${chartWidth} ${chartHeight}" preserveAspectRatio="none" role="img" aria-label="SPY recent price trend"><path class="market-area" d="${geometry.area}"></path><polyline class="market-line" vector-effect="non-scaling-stroke" points="${geometry.polyline}"></polyline></svg>` : "";
+  animateChartLine(chart);
 
   $("tickerList").innerHTML = ["QQQ", "IAU", "SLV"].map((symbol) => {
     const item = symbols[symbol] || {};
     const series = marketSeries(item, markets?.history?.[symbol]);
-    const change = number(item.percent_change) ?? (series.length > 1 ? ((series.at(-1) - series.at(-2)) / series.at(-2)) * 100 : null);
-    return `<div class="ticker-row"><span>${symbol}</span><b>${money(item.price ?? series.at(-1))}</b><em class="${change > 0 ? "positive" : change < 0 ? "negative" : ""}">${percent(change)}</em></div>`;
+    const last = series[series.length - 1];
+    const previous = series[series.length - 2];
+    const change = number(item.percent_change) ?? (series.length > 1 ? ((last - previous) / previous) * 100 : null);
+    return `<div class="ticker-row"><span>${symbol}</span><b>${money(item.price ?? last)}</b><em class="${change > 0 ? "positive" : change < 0 ? "negative" : ""}">${percent(change)}</em></div>`;
   }).join("");
   $("marketState").textContent = markets?.in_hours === true ? "MARKET OPEN" : markets?.stale ? "LAST CLOSE" : "MARKET CLOSED";
   $("marketNote").textContent = markets?.stale ? "Showing the latest verified close while the live feed recovers." : "Quotes may be delayed. Five-day movement is shown for context.";
@@ -671,10 +708,12 @@ function detailMarkets(markets) {
   return `<div class="detail-list">${["SPY", "QQQ", "IAU", "SLV"].map((symbol) => {
     const item = symbols[symbol] || {};
     const series = marketSeries(item, markets?.history?.[symbol]);
-    const change = number(item.percent_change) ?? (series.length > 1 ? ((series.at(-1) - series.at(-2)) / series.at(-2)) * 100 : null);
+    const last = series[series.length - 1];
+    const previous = series[series.length - 2];
+    const change = number(item.percent_change) ?? (series.length > 1 ? ((last - previous) / previous) * 100 : null);
     return `<div class="detail-tile">
       <div><small>${symbol === "SPY" ? "S&P 500 ETF" : symbol === "QQQ" ? "NASDAQ 100 ETF" : symbol === "IAU" ? "GOLD TRUST" : "SILVER TRUST"}</small><h3>${symbol}</h3><em class="${change > 0 ? "positive" : change < 0 ? "negative" : ""}">${percent(change)} today</em></div>
-      <strong>${money(item.price ?? series.at(-1))}</strong>
+      <strong>${money(item.price ?? last)}</strong>
       <div class="detail-spark">${detailSparkline(series)}</div>
     </div>`;
   }).join("")}</div>`;
@@ -856,6 +895,7 @@ document.addEventListener("DOMContentLoaded", () => {
   $("timeFormatButton").addEventListener("click", () => {
     use24Hour = !use24Hour;
     localStorage.setItem(TIME_KEY, use24Hour ? "24" : "12");
+    lastWorldClockMinute = "";
     renderWorldClocks();
   });
   $("refreshButton").addEventListener("click", () => refreshDashboard({ manual: true }));
@@ -866,4 +906,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   refreshDashboard({ background: Boolean(preloaded) });
   setInterval(() => refreshDashboard({ background: true }), 5 * 60 * 1000);
+  let chartResizeTimer = 0;
+  window.addEventListener("resize", () => {
+    window.clearTimeout(chartResizeTimer);
+    chartResizeTimer = window.setTimeout(() => {
+      if (!currentSnapshot) return;
+      renderWeatherChart(currentSnapshot.weather?.hourly);
+      renderMarkets(currentSnapshot.markets);
+    }, 140);
+  });
 });
