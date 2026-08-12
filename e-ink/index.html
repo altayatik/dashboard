@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="eink" data-build="20260811-1">
+<html lang="en" data-theme="eink" data-build="20260811-2">
 <head>
   <meta charset="utf-8">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -9,13 +9,13 @@
   <meta name="theme-color" content="#f8f8f3">
   <meta name="description" content="Altay's fixed e-ink dashboard view.">
   <title>Altay's Dashboard — E-ink</title>
-  <link rel="stylesheet" href="../styles-v2.css?v=20260811-1">
+  <link rel="stylesheet" href="../styles-v2.css?v=20260811-2">
   <link rel="stylesheet" href="./e-ink.css?v=20260727-3">
 </head>
 <body class="is-eink-route">
   <main class="shell">
     <header class="topbar">
-      <p class="dashboard-label">ALTAY’S DASHBOARD / E-INK</p>
+      <span class="topbar-spacer" aria-hidden="true"></span>
       <div class="location-pill"><span class="live-dot"></span><span id="locationLabel">Chicago, IL</span></div>
       <div class="header-actions">
         <p class="last-sync" id="lastSync">Waiting for signal</p>
@@ -31,7 +31,7 @@
     </header>
 
     <section class="intro">
-      <div><p class="eyebrow" id="dateEyebrow">MONDAY · JUL 27</p><h1><span id="greeting">Good afternoon, Altay.</span><br><span class="soft">Here’s what’s happening.</span></h1></div>
+      <div><p class="eyebrow" id="dateEyebrow">MONDAY · JUL 27</p><h1><span id="greeting">Good afternoon, Altay.</span></h1></div>
       <div class="local-time"><p>LOCAL TIME</p><time id="localTime">--:--</time><span id="localSeconds">--</span></div>
     </section>
 
@@ -46,32 +46,32 @@
 
       <article class="panel market-panel is-loading">
         <div class="skeleton-layer skeleton-card" aria-hidden="true"><span class="skeleton-short"></span><span class="skeleton-value"></span><span class="skeleton-chart-small"></span><span class="skeleton-rows"></span></div>
-        <div class="panel-head"><div><p class="panel-kicker">MARKET PULSE</p><h2>Selected signals</h2></div><span class="market-state" id="marketState">CHECKING</span></div>
+        <div class="panel-head"><div><p class="panel-kicker">MARKET PULSE</p><h2>Markets</h2></div><span class="market-state" id="marketState">CHECKING</span></div>
         <div class="market-feature"><div><p><strong>SPY</strong><span>S&P 500 ETF</span></p><h3 id="spyPrice">—</h3><span class="delta" id="spyDelta">—</span></div><div class="mini-chart" id="spyChart"></div></div>
         <div class="ticker-list" id="tickerList"></div><p class="panel-note" id="marketNote">Prices refresh when available.</p>
       </article>
 
       <article class="panel commute-panel is-loading">
         <div class="skeleton-layer skeleton-card" aria-hidden="true"><span class="skeleton-short"></span><span class="skeleton-route"></span><span class="skeleton-route"></span><span class="skeleton-route"></span></div>
-        <div class="panel-head"><div><p class="panel-kicker">CHICAGO TRAFFIC</p><h2>Road pulse</h2></div><span class="tiny-time" id="trafficUpdated">NOW</span></div>
+        <div class="panel-head"><div><p class="panel-kicker">CHICAGO TRAFFIC</p><h2>Traffic</h2></div><span class="tiny-time" id="trafficUpdated">NOW</span></div>
         <div class="route-list" id="routeList"><div class="route"><span>I-90/94</span><div class="route-track"><i style="--fill:35%"></i></div><strong>—</strong></div></div>
         <div class="reversible" id="reversibleLanes"><span>↔</span><p><small>KENNEDY REVERSIBLES</small><strong>Checking direction…</strong></p></div>
       </article>
 
       <article class="panel world-panel">
-        <div class="panel-head"><div><p class="panel-kicker">WORLD WINDOWS</p><h2>People you’re ahead of</h2></div><button class="quiet-button" id="timeFormatButton" type="button">24H</button></div>
+        <div class="panel-head"><div><p class="panel-kicker">WORLD WINDOWS</p><h2>World clocks</h2></div><button class="quiet-button" id="timeFormatButton" type="button">24H</button></div>
         <div class="clock-list" id="clockList"></div>
       </article>
 
       <article class="panel forecast-panel is-loading">
         <div class="skeleton-layer skeleton-forecast" aria-hidden="true"><span class="skeleton-medium"></span><span class="skeleton-days"></span></div>
-        <div class="forecast-title"><p class="panel-kicker">THE WEEK AHEAD</p><p id="forecastNarrative">A quick read on the next few days.</p></div><div class="forecast-days" id="forecastDays"></div>
+        <div class="forecast-title"><p class="panel-kicker">5-DAY FORECAST</p><p id="forecastNarrative">A quick read on the next few days.</p></div><div class="forecast-days" id="forecastDays"></div>
       </article>
     </section>
     <footer><p>Personal dashboard · Chicago</p><div><span id="dataHealth">Connecting to live sources</span><i></i><a href="../">Full dashboard ↗</a></div></footer>
   </main>
   <script>window.__PRELOADED_DASHBOARD__ = null;</script>
   <script src="../config.js"></script>
-  <script type="module" src="../app-v2.js?v=20260811-1"></script>
+  <script type="module" src="../app-v2.js?v=20260811-2"></script>
 </body>
 </html>

@@ -765,7 +765,8 @@ function renderSunnyDayScore(payload) {
   if (!$("sunnyDayScore") || score == null || score < 0 || score > 100) return;
   $("sunnyDayScoreValue").textContent = String(Math.round(score));
   $("sunnyDayScoreLabel").textContent = String(payload?.label || "SUNNYDAY").toUpperCase();
-  $("sunnyDayScore")?.classList.add("is-ready");
+  $("sunnyDayScore").style.setProperty("--score-progress", `${score}%`);
+  $("sunnyDayScore").classList.add("is-ready");
 }
 
 function initSunnyDayScore() {

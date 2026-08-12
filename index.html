@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="daybreak" data-build="20260811-1">
+<html lang="en" data-theme="daybreak" data-build="20260811-2">
 <head>
   <meta charset="utf-8">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles-v2.css?v=20260811-1">
+  <link rel="stylesheet" href="styles-v2.css?v=20260811-2">
 </head>
 <body>
   <div class="ambient ambient-one" aria-hidden="true"></div>
@@ -29,7 +29,7 @@
 
   <main class="shell">
     <header class="topbar">
-      <p class="dashboard-label">ALTAY’S DASHBOARD</p>
+      <span class="topbar-spacer" aria-hidden="true"></span>
 
       <div class="location-pill" aria-label="Dashboard location">
         <span class="live-dot"></span>
@@ -101,8 +101,8 @@
           </div>
           <div class="weather-badges">
             <a class="sunnyday-score" id="sunnyDayScore" href="https://altayatik.com/sunnyday/" aria-label="Open SunnyDay weather score">
+              <span class="sunnyday-score-copy"><small>SUNNYDAY</small><span id="sunnyDayScoreLabel">READING SKY</span></span>
               <strong id="sunnyDayScoreValue">--</strong>
-              <span id="sunnyDayScoreLabel">SUNNYDAY</span>
             </a>
             <span class="status-chip" id="weatherStatus">LIVE</span>
           </div>
@@ -142,7 +142,7 @@
         <div class="panel-head">
           <div>
             <p class="panel-kicker">MARKET PULSE</p>
-            <h2>Selected signals</h2>
+            <h2>Markets</h2>
           </div>
           <span class="market-state" id="marketState">CHECKING</span>
         </div>
@@ -173,7 +173,7 @@
         <div class="panel-head">
           <div>
             <p class="panel-kicker">CHICAGO TRAFFIC</p>
-            <h2>Road pulse</h2>
+            <h2>Traffic</h2>
           </div>
           <span class="tiny-time" id="trafficUpdated">NOW</span>
         </div>
@@ -192,7 +192,7 @@
         <div class="panel-head">
           <div>
             <p class="panel-kicker">WORLD WINDOWS</p>
-            <h2>People you’re ahead of</h2>
+            <h2>World clocks</h2>
           </div>
           <button class="quiet-button" id="timeFormatButton" type="button" aria-label="Toggle time format">24H</button>
         </div>
@@ -205,7 +205,7 @@
           <span class="skeleton-days"></span>
         </div>
         <div class="forecast-title">
-          <p class="panel-kicker">THE WEEK AHEAD</p>
+          <p class="panel-kicker">5-DAY FORECAST</p>
           <p id="forecastNarrative">A quick read on the next few days.</p>
         </div>
         <div class="forecast-days" id="forecastDays"></div>
@@ -232,6 +232,6 @@
 
   <script>window.__PRELOADED_DASHBOARD__ = null;</script>
   <script src="config.js"></script>
-  <script type="module" src="app-v2.js?v=20260811-1"></script>
+  <script type="module" src="app-v2.js?v=20260811-2"></script>
 </body>
 </html>
