@@ -213,28 +213,9 @@ html[data-theme="afterdark"] .star-field-two {
 
 .weather-precip {
   inset: 0;
-  overflow: hidden;
+  width: 100%;
+  height: 100%;
   contain: strict;
-}
-
-.weather-precip::before,
-.weather-precip::after {
-  content: "";
-  position: absolute;
-  inset: -160px 0 0;
-  background-image: repeating-linear-gradient(105deg, transparent 0 28px, rgba(184, 225, 240, .5) 29px 31px, transparent 32px 60px);
-  background-position: 0 0;
-  background-size: 220px 160px;
-  transform: translate3d(0, -160px, 0);
-  will-change: transform;
-  backface-visibility: hidden;
-}
-
-.weather-precip::after {
-  left: -70px;
-  right: 70px;
-  opacity: .5;
-  background-position: 73px 29px;
 }
 
 html[data-theme="weather"][data-weather="sun"] .weather-orb {
@@ -257,29 +238,6 @@ html[data-theme="weather"][data-weather="rain"] .weather-precip,
 html[data-theme="weather"][data-weather="storm"] .weather-precip,
 html[data-theme="weather"][data-weather="snow"] .weather-precip {
   opacity: .48;
-}
-
-html[data-theme="weather"][data-weather="rain"] .weather-precip::before,
-html[data-theme="weather"][data-weather="storm"] .weather-precip::before {
-  animation: rain-fall .95s linear infinite;
-}
-
-html[data-theme="weather"][data-weather="rain"] .weather-precip::after,
-html[data-theme="weather"][data-weather="storm"] .weather-precip::after {
-  animation: rain-fall 1.35s linear infinite;
-}
-
-html[data-theme="weather"][data-weather="storm"] .weather-precip::before {
-  animation-duration: .72s;
-}
-
-html[data-theme="weather"][data-weather="snow"] .weather-precip::before,
-html[data-theme="weather"][data-weather="snow"] .weather-precip::after {
-  inset: -42px 0 0;
-  background-image: radial-gradient(circle, rgba(255,255,255,.85) 0 2px, transparent 2.5px);
-  background-size: 42px 42px;
-  transform: translate3d(0, -42px, 0);
-  animation: snow-fall 4s linear infinite;
 }
 
 .shell {
@@ -880,8 +838,6 @@ html[data-theme="eink"] *, html[data-theme="eink"] *::before, html[data-theme="e
 @keyframes sun-breathe { from { transform: scale(.96); box-shadow: 0 0 60px rgba(255, 211, 107, .55); } to { transform: scale(1.05); box-shadow: 0 0 110px rgba(255, 211, 107, .86); } }
 @keyframes cloud-drift-one { from { transform: translateX(0); } to { transform: translateX(calc(100vw + 430px)); } }
 @keyframes cloud-drift-two { from { transform: translateX(0) scale(.72); } to { transform: translateX(calc(-100vw - 460px)) scale(.72); } }
-@keyframes rain-fall { to { transform: translate3d(0, 0, 0); } }
-@keyframes snow-fall { to { transform: translate3d(0, 0, 0); } }
 @keyframes dialog-in { from { opacity: 0; transform: translateY(22px) scale(.965); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes backdrop-in { from { opacity: 0; } to { opacity: 1; } }
 

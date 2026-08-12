@@ -59,6 +59,117 @@ function syncEchoViewportHeight() {
   if (height > 0) document.documentElement.style.setProperty("--echo-viewport-height", `${height}px`);
 }
 
+function initWeatherPrecipitation() {
+  const canvas = $("weatherPrecip");
+  const context = canvas?.getContext?.("2d", { alpha: true });
+  if (!canvas || !context) return;
+
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  let width = 0;
+  let height = 0;
+  let particles = [];
+  let animationFrame = 0;
+  let lastFrame = 0;
+  let currentKind = "";
+
+  const random = (min, max) => min + Math.random() * (max - min);
+  const isActive = () => document.documentElement.dataset.theme === "weather"
+    && ["rain", "storm", "snow"].includes(document.documentElement.dataset.weather)
+    && !reducedMotion.matches;
+
+  const resetParticle = (particle, initial = false) => {
+    const snow = currentKind === "snow";
+    particle.x = random(-width * .08, width);
+    particle.y = initial ? random(-height * .1, height) : random(-height * .22, -8);
+    particle.speed = snow ? random(24, 54) : random(currentKind === "storm" ? 720 : 430, currentKind === "storm" ? 1120 : 760);
+    particle.length = snow ? random(1.2, 2.8) : random(10, currentKind === "storm" ? 28 : 22);
+    particle.alpha = snow ? random(.3, .78) : random(.2, .66);
+    particle.wind = snow ? random(-10, 18) : random(34, currentKind === "storm" ? 92 : 66);
+  };
+
+  const resize = () => {
+    const rect = canvas.getBoundingClientRect();
+    width = Math.max(1, Math.round(rect.width));
+    height = Math.max(1, Math.round(rect.height));
+    // One backing pixel per CSS pixel keeps the full-screen effect inexpensive
+    // on the Echo's high-density display while remaining crisp at a distance.
+    canvas.width = width;
+    canvas.height = height;
+    const density = IS_ECHO_ROUTE ? 9000 : 10500;
+    const target = Math.max(42, Math.min(IS_ECHO_ROUTE ? 105 : 150, Math.round((width * height) / density)));
+    particles = Array.from({ length: target }, () => {
+      const particle = {};
+      resetParticle(particle, true);
+      return particle;
+    });
+  };
+
+  const stop = () => {
+    if (animationFrame) cancelAnimationFrame(animationFrame);
+    animationFrame = 0;
+    lastFrame = 0;
+    context.clearRect(0, 0, width, height);
+  };
+
+  const draw = (timestamp) => {
+    if (!isActive() || document.visibilityState !== "visible") {
+      stop();
+      return;
+    }
+    const minimumFrameTime = IS_ECHO_ROUTE ? 1000 / 30 : 1000 / 45;
+    if (lastFrame && timestamp - lastFrame < minimumFrameTime) {
+      animationFrame = requestAnimationFrame(draw);
+      return;
+    }
+    const elapsed = lastFrame ? Math.min((timestamp - lastFrame) / 1000, .05) : .016;
+    lastFrame = timestamp;
+    context.clearRect(0, 0, width, height);
+    const snow = currentKind === "snow";
+    context.lineWidth = 1.25;
+    context.lineCap = "round";
+    for (const particle of particles) {
+      particle.x += particle.wind * elapsed;
+      particle.y += particle.speed * elapsed;
+      context.globalAlpha = particle.alpha;
+      context.strokeStyle = snow ? "#f5fbff" : "#b8e1f0";
+      context.fillStyle = "#f5fbff";
+      if (snow) {
+        context.beginPath();
+        context.arc(particle.x, particle.y, particle.length, 0, Math.PI * 2);
+        context.fill();
+      } else {
+        const slant = particle.length * (particle.wind / particle.speed);
+        context.beginPath();
+        context.moveTo(particle.x, particle.y);
+        context.lineTo(particle.x - slant, particle.y - particle.length);
+        context.stroke();
+      }
+      if (particle.y - particle.length > height || particle.x > width + 30) resetParticle(particle);
+    }
+    context.globalAlpha = 1;
+    animationFrame = requestAnimationFrame(draw);
+  };
+
+  const sync = () => {
+    const nextKind = document.documentElement.dataset.weather || "";
+    if (nextKind !== currentKind) {
+      currentKind = nextKind;
+      resize();
+    }
+    if (isActive()) {
+      if (!animationFrame) animationFrame = requestAnimationFrame(draw);
+    } else stop();
+  };
+
+  new MutationObserver(sync).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "data-weather"] });
+  window.addEventListener("resize", resize);
+  window.visualViewport?.addEventListener("resize", resize);
+  document.addEventListener("visibilitychange", sync);
+  reducedMotion.addEventListener?.("change", sync);
+  resize();
+  sync();
+}
+
 function setWakeLockState(state, label) {
   const button = $("keepAwakeButton");
   if (!button) return;
@@ -930,6 +1041,7 @@ function initThemeMenu() {
 
 document.addEventListener("DOMContentLoaded", () => {
   syncEchoViewportHeight();
+  initWeatherPrecipitation();
   const forcedEink = IS_EINK_ROUTE;
   themeMode = forcedEink ? "fixed" : IS_ECHO_ROUTE ? "auto" : (localStorage.getItem(THEME_MODE_KEY) || "auto");
   if (forcedEink) setTheme("eink", false);
