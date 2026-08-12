@@ -8,6 +8,8 @@ const THEME_MODE_KEY = "altay_dashboard_theme_mode";
 const TIME_KEY = "altay_dashboard_time_format";
 const SNAPSHOT_KEY = "altay_dashboard_snapshot_v3";
 const KEEP_AWAKE_KEY = "altay_dashboard_keep_awake";
+const SUNNYDAY_SCORE_KEY = "sunnyday:score-bridge:v1";
+const SUNNYDAY_URL = "https://altayatik.com/sunnyday/";
 const THEMES = {
   daybreak: "Daybreak",
   afterdark: "After dark",
@@ -734,17 +736,50 @@ function initDetailPanels() {
   if (!dialog) return;
   document.addEventListener("click", (event) => {
     const panel = event.target.closest("[data-detail]");
-    if (!panel || event.target.closest("button, a, form") || panel.classList.contains("is-loading")) return;
+    if (!panel || event.target.closest("button, a, form")) return;
+    if (panel.dataset.detail === "weather") {
+      window.location.assign(SUNNYDAY_URL);
+      return;
+    }
+    if (panel.classList.contains("is-loading")) return;
     openDetail(panel.dataset.detail);
   });
   document.addEventListener("keydown", (event) => {
     const panel = event.target.closest("[data-detail]");
-    if (!panel || panel !== event.target || !["Enter", " "].includes(event.key) || panel.classList.contains("is-loading")) return;
+    if (!panel || panel !== event.target || !["Enter", " "].includes(event.key)) return;
     event.preventDefault();
+    if (panel.dataset.detail === "weather") {
+      window.location.assign(SUNNYDAY_URL);
+      return;
+    }
+    if (panel.classList.contains("is-loading")) return;
     openDetail(panel.dataset.detail);
   });
   dialog.addEventListener("click", (event) => {
     if (event.target === dialog) dialog.close();
+  });
+}
+
+function renderSunnyDayScore(payload) {
+  const score = number(payload?.score);
+  if (!$("sunnyDayScore") || score == null || score < 0 || score > 100) return;
+  $("sunnyDayScoreValue").textContent = String(Math.round(score));
+  $("sunnyDayScoreLabel").textContent = String(payload?.label || "SUNNYDAY").toUpperCase();
+  $("sunnyDayScore")?.classList.add("is-ready");
+}
+
+function initSunnyDayScore() {
+  if (!$("sunnyDayScore")) return;
+  try {
+    const cached = JSON.parse(localStorage.getItem(SUNNYDAY_SCORE_KEY) || "null");
+    if (cached?.type === "sunnyday:score") renderSunnyDayScore(cached);
+  } catch {
+    // The live score bridge will replace a missing or invalid cached value.
+  }
+  const bridgeOrigin = new URL($("sunnyDayBridge")?.src || SUNNYDAY_URL).origin;
+  window.addEventListener("message", (event) => {
+    if (event.origin !== bridgeOrigin || event.data?.type !== "sunnyday:score") return;
+    renderSunnyDayScore(event.data);
   });
 }
 
@@ -810,6 +845,7 @@ document.addEventListener("DOMContentLoaded", () => {
   else if (themeMode === "auto") updateAutomaticTheme();
   else setTheme(localStorage.getItem(THEME_KEY) || "daybreak", false);
   initThemeMenu();
+  initSunnyDayScore();
   initDetailPanels();
   initMobileTabs();
   initScreenWakeLock();
