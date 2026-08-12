@@ -28,7 +28,7 @@ html[data-route="echo"] .echo-shell {
 html[data-route="echo"] .echo-masthead {
   display: grid;
   min-width: 0;
-  grid-template-columns: minmax(320px, 1fr) auto minmax(190px, auto);
+  grid-template-columns: minmax(300px, 1fr) auto;
   align-items: center;
   gap: clamp(16px, 2.96vmin, 32px);
   padding: 0 clamp(4px, .74vmin, 8px);
@@ -37,80 +37,26 @@ html[data-route="echo"] .echo-masthead {
 
 html[data-route="echo"] .echo-date-block { min-width: 0; }
 
-html[data-route="echo"] .echo-date-block .eyebrow {
-  margin: 0 0 clamp(5px, .93vmin, 10px);
-  color: var(--muted);
-  font: 600 clamp(16px, 2.96vmin, 32px)/1.2 var(--mono);
-  letter-spacing: .08em;
-}
-
 html[data-route="echo"] .echo-greeting {
-  overflow: hidden;
+  overflow: visible;
   margin: 0;
   color: var(--ink);
   font: 650 clamp(28px, 5.93vmin, 64px)/1.05 var(--sans);
   letter-spacing: -.045em;
-  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 html[data-route="echo"] .echo-place-block { display: none; }
 html[data-route="echo"] .echo-clock-actions { display: contents; }
 
-html[data-route="echo"] .header-actions {
+html[data-route="echo"] .local-time {
   grid-column: 2;
   grid-row: 1;
-  justify-self: center;
-  gap: clamp(8px, 1.48vmin, 16px);
-}
-
-html[data-route="echo"] .icon-button {
-  width: clamp(42px, 7.78vmin, 84px);
-  height: clamp(42px, 7.78vmin, 84px);
-  border-radius: 50%;
-  font-size: clamp(21px, 3.89vmin, 42px);
-}
-
-html[data-route="echo"] .keep-awake-button,
-html[data-route="echo"] .theme-button {
-  min-height: clamp(42px, 7.78vmin, 84px);
-  padding: 0 clamp(13px, 2.4vmin, 26px);
-  border-radius: 999px;
-  font-size: clamp(12px, 2.22vmin, 24px);
-}
-
-html[data-route="echo"] .keep-awake-dot {
-  width: clamp(8px, 1.48vmin, 16px);
-  height: clamp(8px, 1.48vmin, 16px);
-}
-
-html[data-route="echo"] .theme-swatch {
-  width: clamp(14px, 2.59vmin, 28px);
-  height: clamp(14px, 2.59vmin, 28px);
-}
-
-html[data-route="echo"] .theme-menu {
-  top: calc(100% + clamp(8px, 1.48vmin, 16px));
-  width: clamp(220px, 40.74vmin, 440px);
-  padding: clamp(8px, 1.48vmin, 16px);
-  border-radius: clamp(16px, 2.96vmin, 32px);
-}
-
-html[data-route="echo"] .theme-menu button {
-  grid-template-columns: clamp(20px, 3.7vmin, 40px) 1fr;
-  gap: clamp(10px, 1.85vmin, 20px);
-  padding: clamp(10px, 1.85vmin, 20px);
-  border-radius: clamp(12px, 2.22vmin, 24px);
-}
-
-html[data-route="echo"] .theme-menu button > span:last-child { font-size: clamp(12px, 2.22vmin, 24px); }
-html[data-route="echo"] .theme-menu small { font-size: clamp(11px, 2.04vmin, 22px); }
-
-html[data-route="echo"] .local-time {
-  grid-column: 3;
-  grid-row: 1;
+  display: flex;
+  align-items: end;
+  gap: clamp(16px, 2.96vmin, 32px);
   justify-self: end;
-  min-width: clamp(190px, 35.19vmin, 380px);
+  min-width: 0;
   cursor: pointer;
   outline: none;
 }
@@ -118,14 +64,23 @@ html[data-route="echo"] .local-time {
 html[data-route="echo"] .local-time:hover time,
 html[data-route="echo"] .local-time:focus-visible time { color: var(--accent); }
 
-html[data-route="echo"] .local-time p {
-  margin-bottom: clamp(2px, .37vmin, 4px);
-  font-size: clamp(11px, 2.04vmin, 22px);
-  letter-spacing: .12em;
+html[data-route="echo"] .local-time .echo-date {
+  margin: 0 0 clamp(8px, 1.48vmin, 16px);
+  color: var(--muted);
+  font: 650 clamp(18px, 3.33vmin, 36px)/1.1 var(--mono);
+  letter-spacing: .06em;
+  text-align: right;
+  white-space: nowrap;
+}
+
+html[data-route="echo"] .echo-time-line {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: clamp(8px, 1.48vmin, 16px);
 }
 
 html[data-route="echo"] .local-time time {
-  grid-column: 1 / -1;
   font-size: clamp(68px, 12.59vmin, 136px);
   line-height: .9;
   letter-spacing: -.035em;
@@ -133,7 +88,13 @@ html[data-route="echo"] .local-time time {
   transition: color .2s ease;
 }
 
-html[data-route="echo"] .local-time > span { display: none; }
+html[data-route="echo"] .local-time .echo-meridiem {
+  display: block;
+  padding-bottom: clamp(6px, 1.11vmin, 12px);
+  color: var(--muted);
+  font: 700 clamp(18px, 3.33vmin, 36px)/1 var(--mono);
+  letter-spacing: .06em;
+}
 
 html[data-route="echo"] .dashboard-grid {
   display: grid;
@@ -251,10 +212,9 @@ html[data-route="echo"] .temperature sup {
 }
 
 html[data-route="echo"] .weather-meta {
-  display: flex;
-  align-items: center;
-  gap: clamp(12px, 2.22vmin, 24px);
-  margin-top: clamp(13px, 2.4vmin, 26px);
+  display: grid;
+  gap: clamp(4px, .74vmin, 8px);
+  margin-top: clamp(9px, 1.67vmin, 18px);
   padding: 0;
   text-align: left;
 }
@@ -264,6 +224,7 @@ html[data-route="echo"] .weather-meta p {
   color: var(--muted);
   font: 600 clamp(11px, 2.04vmin, 22px)/1.2 var(--mono);
   letter-spacing: .04em;
+  white-space: nowrap;
 }
 
 html[data-route="echo"] .weather-meta strong {
@@ -277,6 +238,7 @@ html[data-route="echo"] .weather-side {
 }
 
 html[data-route="echo"] .sunnyday-score {
+  --score-color: #d59628;
   width: clamp(112px, 20.74vmin, 224px);
   min-width: clamp(112px, 20.74vmin, 224px);
   min-height: clamp(118px, 21.85vmin, 236px);
@@ -290,26 +252,65 @@ html[data-route="echo"] .sunnyday-score {
   background: transparent;
 }
 
-html[data-route="echo"] .sunnyday-score > strong {
+html[data-route="echo"] .sunnyday-ring {
   grid-row: 1;
+  position: relative;
   width: clamp(92px, 17.04vmin, 184px);
   height: clamp(92px, 17.04vmin, 184px);
-  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--line));
-  background:
-    radial-gradient(circle, var(--surface-solid) 0 55%, transparent 57%),
-    conic-gradient(var(--accent) var(--score-progress), var(--line) 0);
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+}
+
+html[data-route="echo"] .sunnyday-ring svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transform: rotate(-90deg);
+}
+
+html[data-route="echo"] .sunnyday-ring-track,
+html[data-route="echo"] .sunnyday-ring-fill {
+  fill: none;
+  stroke-width: 9;
+}
+
+html[data-route="echo"] .sunnyday-ring-track {
+  stroke: color-mix(in srgb, var(--ink) 10%, var(--line));
+}
+
+html[data-route="echo"] .sunnyday-ring-fill {
+  stroke: var(--score-color);
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  transition: stroke-dashoffset .7s cubic-bezier(.2, .78, .22, 1), stroke .35s ease;
+}
+
+html[data-route="echo"] .sunnyday-ring > strong {
+  position: relative;
+  z-index: 1;
+  color: var(--ink);
   font-size: clamp(36px, 6.67vmin, 72px);
   font-weight: 650;
+  line-height: 1;
   letter-spacing: -.05em;
 }
 
-html[data-route="echo"] .sunnyday-score:not(.is-ready) > strong {
-  color: transparent;
-  background:
-    radial-gradient(circle, var(--surface-solid) 0 55%, transparent 57%),
-    conic-gradient(from 30deg, color-mix(in srgb, var(--accent) 52%, var(--line)), var(--line) 34% 72%, color-mix(in srgb, var(--accent) 52%, var(--line)));
+html[data-route="echo"] .sunnyday-score:not(.is-ready) .sunnyday-ring > strong { color: transparent; }
+html[data-route="echo"] .sunnyday-score:not(.is-ready) .sunnyday-ring-fill {
+  stroke: color-mix(in srgb, var(--accent) 56%, var(--line));
+  stroke-dashoffset: 78;
   animation: echo-score-wait 1.15s ease-in-out infinite alternate;
 }
+
+html[data-route="echo"] .sunnyday-score[data-score-band="great"] .sunnyday-ring-fill { stroke: url(#sunnyScoreGreat); }
+html[data-route="echo"] .sunnyday-score[data-score-band="good"] .sunnyday-ring-fill { stroke: url(#sunnyScoreGood); }
+html[data-route="echo"] .sunnyday-score[data-score-band="mixed"] .sunnyday-ring-fill { stroke: url(#sunnyScoreMixed); }
+html[data-route="echo"] .sunnyday-score[data-score-band="risky"] .sunnyday-ring-fill { stroke: url(#sunnyScoreRisky); }
+html[data-route="echo"] .sunnyday-score[data-score-band="poor"] .sunnyday-ring-fill { stroke: url(#sunnyScorePoor); }
 
 html[data-route="echo"] .sunnyday-score-copy {
   grid-row: 2;
@@ -321,6 +322,7 @@ html[data-route="echo"] .sunnyday-score-copy {
 html[data-route="echo"] .sunnyday-score-copy small {
   font-size: clamp(11px, 2.04vmin, 22px);
   letter-spacing: .08em;
+  white-space: nowrap;
 }
 
 html[data-route="echo"] .sunnyday-score-copy > span {
@@ -344,6 +346,7 @@ html[data-route="echo"] .chart-labels {
 html[data-route="echo"] .chart-canvas {
   width: 100%;
   height: clamp(90px, 16.67vmin, 180px);
+  overflow: hidden;
 }
 
 html[data-route="echo"] .chart-times {
@@ -354,8 +357,13 @@ html[data-route="echo"] .chart-times {
 
 html[data-route="echo"] .chart-times span:nth-child(2),
 html[data-route="echo"] .chart-times span:nth-child(3) { text-align: center; }
+html[data-route="echo"] .chart-line,
+html[data-route="echo"] .market-line { stroke-dasharray: 1; stroke-dashoffset: 1; }
 html[data-route="echo"] .chart-line { stroke-width: 3; }
 html[data-route="echo"] .chart-dot { stroke-width: 3; }
+html[data-route="echo"] .chart-line.is-drawing { animation: draw .7s .05s ease-out both; }
+html[data-route="echo"] .chart-area { animation: chart-area-in .22s .72s ease-out both; }
+html[data-route="echo"] .chart-dot { animation: chart-dot-in .2s .72s ease-out both; }
 
 html[data-route="echo"] .metric-row {
   grid-template-columns: repeat(3, 1fr);
@@ -374,7 +382,7 @@ html[data-route="echo"] .metric-row strong { font-size: clamp(16px, 2.96vmin, 32
 html[data-route="echo"] .market-feature {
   min-height: 0;
   flex: 1 1 auto;
-  grid-template-columns: minmax(108px, .9fr) 1.2fr;
+  grid-template-columns: max-content minmax(96px, 1fr);
   align-items: center;
   gap: clamp(10px, 1.85vmin, 20px);
   margin-top: clamp(5px, .93vmin, 10px);
@@ -382,18 +390,23 @@ html[data-route="echo"] .market-feature {
 
 html[data-route="echo"] .market-feature p strong { font-size: clamp(14px, 2.59vmin, 28px); }
 html[data-route="echo"] .market-feature p span { display: none; }
+html[data-route="echo"] .market-feature > div:first-child { min-width: 0; }
 html[data-route="echo"] .market-feature h3 {
   margin: clamp(5px, .93vmin, 10px) 0 clamp(2px, .37vmin, 4px);
   font-size: clamp(34px, 6.3vmin, 68px);
   line-height: 1;
+  white-space: nowrap;
 }
 html[data-route="echo"] .delta { font-size: clamp(14px, 2.59vmin, 28px); }
 html[data-route="echo"] .mini-chart {
   width: 100%;
   height: clamp(70px, 12.96vmin, 140px);
   min-height: 0;
+  overflow: hidden;
 }
 html[data-route="echo"] .market-line { stroke-width: 3; }
+html[data-route="echo"] .market-line.is-drawing { animation: draw .6s .05s ease-out both; }
+html[data-route="echo"] .market-area { animation: market-area-in .2s .65s ease-out both; }
 
 html[data-route="echo"] .ticker-list {
   display: grid;
@@ -471,13 +484,29 @@ html[data-route="echo"] .forecast-day {
   padding: clamp(8px, 1.48vmin, 16px) clamp(10px, 1.85vmin, 20px);
 }
 html[data-route="echo"] .forecast-day > span { font-size: clamp(13px, 2.41vmin, 26px); }
+html[data-route="echo"] .forecast-date {
+  display: grid;
+  gap: clamp(2px, .37vmin, 4px);
+  font-family: var(--mono);
+  line-height: 1.1;
+}
+html[data-route="echo"] .forecast-date strong {
+  color: var(--ink);
+  font-size: clamp(13px, 2.41vmin, 26px);
+  font-weight: 650;
+}
+html[data-route="echo"] .forecast-date small {
+  color: var(--muted);
+  font-size: clamp(11px, 2.04vmin, 22px);
+  white-space: nowrap;
+}
 html[data-route="echo"] .forecast-icon { font-size: clamp(32px, 5.93vmin, 64px); }
 html[data-route="echo"] .forecast-temp { font-size: clamp(16px, 2.96vmin, 32px); }
 html[data-route="echo"] .precip { font-size: clamp(11px, 2.04vmin, 22px); }
 
 html[data-route="echo"] .panel-note { display: none; }
 html[data-route="echo"] .chart-canvas svg,
-html[data-route="echo"] .mini-chart svg { overflow: hidden; }
+html[data-route="echo"] .mini-chart svg { display: block; overflow: hidden; }
 
 html[data-route="echo"][data-theme="afterdark"] .panel {
   background: color-mix(in srgb, var(--surface-solid) 97%, transparent);
@@ -502,9 +531,7 @@ html[data-route="echo"][data-theme="afterdark"] .star-field-two {
 }
 
 @media (max-width: 840px) {
-  html[data-route="echo"] .echo-masthead { grid-template-columns: minmax(270px, 1fr) auto minmax(165px, auto); }
-  html[data-route="echo"] .theme-button { width: clamp(42px, 7.78vmin, 84px); padding: 0; justify-content: center; }
-  html[data-route="echo"] .theme-button > span:not(.theme-swatch) { display: none; }
+  html[data-route="echo"] .echo-masthead { grid-template-columns: minmax(260px, 1fr) auto; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -514,5 +541,6 @@ html[data-route="echo"][data-theme="afterdark"] .star-field-two {
     animation-duration: .01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: .01ms !important;
+    animation-delay: 0s !important;
   }
 }

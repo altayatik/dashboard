@@ -157,11 +157,10 @@ async function startSilkMediaKeepAlive() {
 
 function initScreenWakeLock() {
   const button = $("keepAwakeButton");
-  if (!button) return;
   const isSilk = /\bSilk\//i.test(navigator.userAgent) || IS_ECHO_ROUTE;
   let enabled = isSilk || localStorage.getItem(KEEP_AWAKE_KEY) === "1";
 
-  button.addEventListener("click", () => {
+  button?.addEventListener("click", () => {
     enabled = true;
     localStorage.setItem(KEEP_AWAKE_KEY, "1");
     requestScreenWakeLock();
@@ -275,22 +274,42 @@ function automaticThemeForNow() {
   const nowMinutes = (Number(parts.hour) % 24) * 60 + Number(parts.minute);
   const sunrise = timeStringMinutes(solarSchedule?.sunrise) ?? 7 * 60;
   const sunset = timeStringMinutes(solarSchedule?.sunset) ?? 20 * 60;
-  return nowMinutes < sunrise || nowMinutes >= sunset ? "afterdark" : "daybreak";
+  const isNight = nowMinutes < sunrise || nowMinutes >= sunset;
+  if (IS_ECHO_ROUTE) return isNight ? "afterdark" : "weather";
+  return isNight ? "afterdark" : "daybreak";
 }
 
 function updateAutomaticTheme() {
   if (themeMode !== "auto" || IS_EINK_ROUTE) return;
   const next = automaticThemeForNow();
   if (document.documentElement.dataset.theme !== next) setTheme(next, false);
-  $("themeButtonLabel").textContent = next === "afterdark" ? "Auto · Night" : "Auto · Day";
+  if ($("themeButtonLabel")) $("themeButtonLabel").textContent = next === "afterdark" ? "Auto · Night" : "Auto · Day";
 }
 
 function tickClock() {
   const parts = dateParts();
   const hour = Number(parts.hour) % 24;
-  $("dateEyebrow").textContent = `${parts.weekday.toUpperCase()} · ${parts.month.toUpperCase()} ${parts.day}`;
-  $("localTime").textContent = `${parts.hour}:${parts.minute}`;
-  $("localSeconds").textContent = parts.second;
+  const now = new Date();
+  if (IS_ECHO_ROUTE) {
+    const echoDate = Object.fromEntries(new Intl.DateTimeFormat("en-US", {
+      timeZone: TIMEZONE,
+      weekday: "long",
+      month: "long",
+      day: "numeric"
+    }).formatToParts(now).filter((part) => part.type !== "literal").map((part) => [part.type, part.value]));
+    $("dateEyebrow").textContent = `${echoDate.weekday.toUpperCase()} · ${echoDate.month.toUpperCase()} ${echoDate.day}`;
+    $("localTime").textContent = new Intl.DateTimeFormat("en-US", {
+      timeZone: TIMEZONE,
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true
+    }).format(now).replace(/\s?[AP]M$/i, "");
+    $("localSeconds").textContent = hour < 12 ? "AM" : "PM";
+  } else {
+    $("dateEyebrow").textContent = `${parts.weekday.toUpperCase()} · ${parts.month.toUpperCase()} ${parts.day}`;
+    $("localTime").textContent = `${parts.hour}:${parts.minute}`;
+    $("localSeconds").textContent = parts.second;
+  }
   $("greeting").textContent = `${hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : hour < 21 ? "Good evening" : "Good night"}, ${NAME}.`;
   const minuteKey = `${parts.year}-${parts.month}-${parts.day}-${parts.hour}-${parts.minute}-${use24Hour}`;
   if (minuteKey !== lastWorldClockMinute) {
@@ -300,7 +319,7 @@ function tickClock() {
   updateAutomaticTheme();
 }
 
-let use24Hour = localStorage.getItem(TIME_KEY) !== "12";
+let use24Hour = IS_ECHO_ROUTE ? false : localStorage.getItem(TIME_KEY) !== "12";
 function renderWorldClocks() {
   const now = new Date();
   const homeDay = dateParts(now).day;
@@ -361,7 +380,18 @@ function lineGeometry(values, width, height, pad = 5, minimumSpan = 0) {
 
 function animateChartLine(container) {
   const line = container?.querySelector(".chart-line, .market-line");
-  if (!line || typeof line.getTotalLength !== "function") return;
+  if (!line) return;
+  if (IS_ECHO_ROUTE) {
+    line.getBoundingClientRect();
+    line.classList.add("is-drawing");
+    window.setTimeout(() => {
+      line.style.strokeDasharray = "none";
+      line.style.strokeDashoffset = "0";
+      line.classList.remove("is-drawing");
+    }, 1000);
+    return;
+  }
+  if (typeof line.getTotalLength !== "function") return;
   const length = Math.ceil(line.getTotalLength());
   line.style.setProperty("--line-length", String(length));
   line.getBoundingClientRect();
@@ -395,7 +425,7 @@ function renderWeatherChart(hourly) {
       <defs><linearGradient id="weatherArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--accent)"/><stop offset="1" stop-color="var(--accent)" stop-opacity="0"/></linearGradient></defs>
       <path class="chart-guide" vector-effect="non-scaling-stroke" d="M${pad} ${guideTop}H${width - pad} M${pad} ${guideMiddle}H${width - pad} M${pad} ${guideBottom}H${width - pad}"></path>
       <path class="chart-area" d="${geometry.area}"></path>
-      <path class="chart-line" vector-effect="non-scaling-stroke" d="${geometry.curve}"></path>${dots}
+      <path class="chart-line"${IS_ECHO_ROUTE ? ' pathLength="1"' : ""} vector-effect="non-scaling-stroke" d="${geometry.curve}"></path>${dots}
     </svg>`;
   animateChartLine(container);
   $("weatherRange").textContent = `${Math.round(geometry.max)}° HIGH · ${Math.round(geometry.min)}° LOW`;
@@ -450,9 +480,14 @@ function renderForecast(daily) {
   }
   $("forecastDays").innerHTML = days.map((date, offset) => {
     const index = offset + 1;
-    const day = new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: "UTC" }).format(new Date(`${date}T12:00:00Z`)).toUpperCase();
+    const forecastDate = new Date(`${date}T12:00:00Z`);
+    const day = new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: "UTC" }).format(forecastDate).toUpperCase();
+    const calendarDay = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "UTC" }).format(forecastDate).toUpperCase();
+    const dateLabel = IS_ECHO_ROUTE
+      ? `<span class="forecast-date"><strong>${day}</strong><small>${calendarDay}</small></span>`
+      : `<span>${day}</span>`;
     return `<div class="forecast-day">
-      <span>${day}</span><div class="forecast-icon" title="${esc(weatherText(codes[index]))}">${weatherGlyph(codes[index])}</div>
+      ${dateLabel}<div class="forecast-icon" title="${esc(weatherText(codes[index]))}">${weatherGlyph(codes[index])}</div>
       <div><div class="forecast-temp"><span>${round(highs[index])}°</span><span>${round(lows[index])}°</span></div><div class="precip">${round(rain[index], 0)}% rain</div></div>
     </div>`;
   }).join("");
@@ -492,7 +527,7 @@ function renderMarkets(markets) {
   const chartWidth = Math.max(140, Math.round(chart.clientWidth || 180));
   const chartHeight = Math.max(48, Math.round(chart.clientHeight || 60));
   const geometry = lineGeometry(spyHistory, chartWidth, chartHeight, 4, Math.abs(spyLast || 1) * .015);
-  chart.innerHTML = geometry ? `<svg viewBox="0 0 ${chartWidth} ${chartHeight}" preserveAspectRatio="none" role="img" aria-label="SPY recent price trend"><path class="market-area" d="${geometry.area}"></path><polyline class="market-line" vector-effect="non-scaling-stroke" points="${geometry.polyline}"></polyline></svg>` : "";
+  chart.innerHTML = geometry ? `<svg viewBox="0 0 ${chartWidth} ${chartHeight}" preserveAspectRatio="none" role="img" aria-label="SPY recent price trend"><path class="market-area" d="${geometry.area}"></path><polyline class="market-line"${IS_ECHO_ROUTE ? ' pathLength="1"' : ""} vector-effect="non-scaling-stroke" points="${geometry.polyline}"></polyline></svg>` : "";
   animateChartLine(chart);
 
   $("tickerList").innerHTML = ["QQQ", "IAU", "SLV"].map((symbol) => {
@@ -629,7 +664,7 @@ let activeRefresh = null;
 async function refreshDashboard({ manual = false, background = false } = {}) {
   if (activeRefresh) return activeRefresh;
   const button = $("refreshButton");
-  if (manual) button.classList.add("is-spinning");
+  if (manual) button?.classList.add("is-spinning");
   if (!hasRenderedSnapshot && !background) {
     document.querySelectorAll(".weather-panel, .market-panel, .commute-panel, .forecast-panel")
       .forEach((panel) => panel.classList.add("is-loading"));
@@ -663,7 +698,7 @@ async function refreshDashboard({ manual = false, background = false } = {}) {
     if (!hasRenderedSnapshot) renderSnapshot(FALLBACK, { cached: true });
     $("dataHealth").textContent = "Live refresh paused · showing the latest reading";
   }).finally(() => {
-    button.classList.remove("is-spinning");
+    button?.classList.remove("is-spinning");
     activeRefresh = null;
   });
 
@@ -810,6 +845,9 @@ function renderSunnyDayScore(payload) {
   $("sunnyDayScoreValue").textContent = String(Math.round(score));
   $("sunnyDayScoreLabel").textContent = String(payload?.label || "SUNNYDAY").toUpperCase();
   $("sunnyDayScore").style.setProperty("--score-progress", `${score}%`);
+  const ring = $("sunnyDayScoreRing");
+  if (ring) ring.style.strokeDashoffset = String(100 - score);
+  $("sunnyDayScore").dataset.scoreBand = score >= 90 ? "great" : score >= 75 ? "good" : score >= 55 ? "mixed" : score >= 35 ? "risky" : "poor";
   $("sunnyDayScore").classList.add("is-ready");
 }
 
@@ -848,13 +886,14 @@ function setTheme(theme, persist = true) {
   const safeTheme = THEMES[migratedTheme] ? migratedTheme : "daybreak";
   document.documentElement.dataset.theme = safeTheme;
   document.querySelector('meta[name="theme-color"]')?.setAttribute("content", getComputedStyle(document.documentElement).getPropertyValue("--bg").trim());
-  $("themeButtonLabel").textContent = THEMES[safeTheme];
+  if ($("themeButtonLabel")) $("themeButtonLabel").textContent = THEMES[safeTheme];
   if (persist && !IS_EINK_ROUTE) localStorage.setItem(THEME_KEY, safeTheme);
 }
 
 function initThemeMenu() {
   const menu = $("themeMenu");
   const button = $("themeButton");
+  if (!menu || !button) return;
   button.addEventListener("click", () => {
     const open = menu.hidden;
     menu.hidden = !open;
@@ -885,7 +924,7 @@ function initThemeMenu() {
 
 document.addEventListener("DOMContentLoaded", () => {
   const forcedEink = IS_EINK_ROUTE;
-  themeMode = forcedEink ? "fixed" : (localStorage.getItem(THEME_MODE_KEY) || "auto");
+  themeMode = forcedEink ? "fixed" : IS_ECHO_ROUTE ? "auto" : (localStorage.getItem(THEME_MODE_KEY) || "auto");
   if (forcedEink) setTheme("eink", false);
   else if (themeMode === "auto") updateAutomaticTheme();
   else setTheme(localStorage.getItem(THEME_KEY) || "daybreak", false);
@@ -897,13 +936,13 @@ document.addEventListener("DOMContentLoaded", () => {
   initBuildFreshness();
   tickClock();
   setInterval(tickClock, 1000);
-  $("timeFormatButton").addEventListener("click", () => {
+  $("timeFormatButton")?.addEventListener("click", () => {
     use24Hour = !use24Hour;
     localStorage.setItem(TIME_KEY, use24Hour ? "24" : "12");
     lastWorldClockMinute = "";
     renderWorldClocks();
   });
-  $("refreshButton").addEventListener("click", () => refreshDashboard({ manual: true }));
+  $("refreshButton")?.addEventListener("click", () => refreshDashboard({ manual: true }));
   const preloaded = window.__PRELOADED_DASHBOARD__ || readCachedSnapshot();
   if (preloaded) {
     renderSnapshot(preloaded, { cached: true });
