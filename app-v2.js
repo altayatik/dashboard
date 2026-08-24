@@ -15,6 +15,7 @@ const SNAPSHOT_KEY = "altay_dashboard_snapshot_v3";
 const KEEP_AWAKE_KEY = `altay_dashboard_keep_awake${ROUTE_KEY_SUFFIX}`;
 const SUNNYDAY_SCORE_KEY = "sunnyday:score-bridge:v1";
 const SUNNYDAY_URL = "https://altayatik.com/sunnyday/";
+const SUNNYDAY_SCORE_REFRESH_MS = 5 * 60 * 1000;
 const THEMES = {
   daybreak: "Daybreak",
   afterdark: "After dark",
@@ -956,7 +957,7 @@ function initDetailPanels() {
   });
 }
 
-function renderSunnyDayScore(payload) {
+function renderSunnyDayScore(payload, { persist = false } = {}) {
   const score = number(payload?.score);
   if (!$("sunnyDayScore") || score == null || score < 0 || score > 100) return;
   $("sunnyDayScoreValue").textContent = String(Math.round(score));
@@ -966,20 +967,59 @@ function renderSunnyDayScore(payload) {
   if (ring) ring.style.strokeDashoffset = String(100 - score);
   $("sunnyDayScore").dataset.scoreBand = score >= 90 ? "great" : score >= 75 ? "good" : score >= 55 ? "mixed" : score >= 35 ? "risky" : "poor";
   $("sunnyDayScore").classList.add("is-ready");
+  if (persist) {
+    try {
+      localStorage.setItem(SUNNYDAY_SCORE_KEY, JSON.stringify({
+        ...payload,
+        type: "sunnyday:score",
+        score,
+        receivedAt: new Date().toISOString()
+      }));
+    } catch {
+      // The live score remains usable when browser storage is unavailable.
+    }
+  }
 }
 
 function initSunnyDayScore() {
   if (!$("sunnyDayScore")) return;
+  const bridge = $("sunnyDayBridge");
+  if (!bridge) return;
+  let lastLiveUpdate = 0;
   try {
     const cached = JSON.parse(localStorage.getItem(SUNNYDAY_SCORE_KEY) || "null");
     if (cached?.type === "sunnyday:score") renderSunnyDayScore(cached);
   } catch {
     // The live score bridge will replace a missing or invalid cached value.
   }
-  const bridgeOrigin = new URL($("sunnyDayBridge")?.src || SUNNYDAY_URL).origin;
+  const bridgeOrigin = new URL(bridge.src || SUNNYDAY_URL).origin;
+  const requestLiveScore = ({ reload = false } = {}) => {
+    if (reload) {
+      const url = new URL(SUNNYDAY_URL);
+      url.searchParams.set("bridge", "score");
+      url.searchParams.set("dashboardRefresh", String(Date.now()));
+      bridge.src = url.href;
+      return;
+    }
+    bridge.contentWindow?.postMessage({ type: "sunnyday:score:request" }, bridgeOrigin);
+  };
+
   window.addEventListener("message", (event) => {
-    if (event.origin !== bridgeOrigin || event.data?.type !== "sunnyday:score") return;
-    renderSunnyDayScore(event.data);
+    if (event.origin !== bridgeOrigin || event.source !== bridge.contentWindow || event.data?.type !== "sunnyday:score") return;
+    lastLiveUpdate = Date.now();
+    renderSunnyDayScore(event.data, { persist: true });
+  });
+  bridge.addEventListener("load", () => requestLiveScore());
+
+  // SunnyDay publishes its score after each forecast load. Refreshing the
+  // invisible bridge keeps this long-running dashboard in sync without
+  // reloading the page or interrupting Echo/Silk display mode.
+  requestLiveScore({ reload: true });
+  window.setInterval(() => requestLiveScore({ reload: true }), SUNNYDAY_SCORE_REFRESH_MS);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible" && Date.now() - lastLiveUpdate >= SUNNYDAY_SCORE_REFRESH_MS) {
+      requestLiveScore({ reload: true });
+    }
   });
 }
 
