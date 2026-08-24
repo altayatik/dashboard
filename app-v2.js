@@ -532,6 +532,18 @@ function temperatureChartColor(value, min, max) {
   return ratio <= .5 ? mixChartColor("cool", "warm", ratio * 2) : mixChartColor("warm", "hot", (ratio - .5) * 2);
 }
 
+function marketChartColor(value, min, max) {
+  const ratio = max === min ? .5 : (value - min) / (max - min);
+  const channel = (start, end, amount) => Math.round(start + (end - start) * amount);
+  const low = [216, 80, 62];
+  const middle = [242, 171, 64];
+  const high = [31, 157, 116];
+  const start = ratio <= .5 ? low : middle;
+  const end = ratio <= .5 ? middle : high;
+  const amount = ratio <= .5 ? ratio * 2 : (ratio - .5) * 2;
+  return `rgb(${channel(start[0], end[0], amount)} ${channel(start[1], end[1], amount)} ${channel(start[2], end[2], amount)})`;
+}
+
 function renderWeatherChart(hourly) {
   const samples = (hourly?.time || []).map((time, index) => ({
     time,
@@ -671,7 +683,7 @@ function renderForecast(daily) {
     const score = forecastSunnyDayScore(daily, index);
     const scoreLabel = sunnyDayScoreLabel(score);
     return `<div class="forecast-day">
-      ${dateLabel}<div class="forecast-score" data-score-band="${sunnyDayScoreBand(score)}" style="--forecast-score:${score}" title="SunnyDay score ${score} · ${esc(scoreLabel)}" aria-label="SunnyDay score ${score}, ${esc(scoreLabel)}"><strong>${score}</strong><small>SD</small></div>
+      ${dateLabel}<div class="forecast-score" data-score-band="${sunnyDayScoreBand(score)}" style="--forecast-score:${score}" title="SunnyDay score ${score} · ${esc(scoreLabel)}" aria-label="SunnyDay score ${score}, ${esc(scoreLabel)}"><strong>${score}</strong><span class="forecast-score-track"><i></i></span></div>
       <div><div class="forecast-temp"><span>${round(highs[index])}°</span><span>${round(lows[index])}°</span></div><div class="precip">${round(rain[index], 0)}% rain</div></div>
     </div>`;
   }).join("");
@@ -708,12 +720,20 @@ function renderMarkets(markets) {
   $("spyDelta").className = `delta ${spyChange > 0 ? "positive" : spyChange < 0 ? "negative" : ""}`;
 
   const chart = $("spyChart");
-  const spyTrend = spyHistory.length > 1 ? spyLast - spyHistory[0] : spyChange;
-  chart.dataset.trend = spyTrend > 0 ? "positive" : spyTrend < 0 ? "negative" : "flat";
   const chartWidth = Math.max(140, Math.round(chart.clientWidth || 180));
   const chartHeight = Math.max(48, Math.round(chart.clientHeight || 60));
   const geometry = lineGeometry(spyHistory, chartWidth, chartHeight, 4, Math.abs(spyLast || 1) * .015);
-  chart.innerHTML = geometry ? `<svg viewBox="0 0 ${chartWidth} ${chartHeight}" preserveAspectRatio="none" role="img" aria-label="SPY recent price trend"><path class="market-area" d="${geometry.area}"></path><polyline class="market-line"${IS_ECHO_ROUTE ? ' pathLength="1"' : ""} vector-effect="non-scaling-stroke" points="${geometry.polyline}"></polyline></svg>` : "";
+  const marketColors = geometry ? spyHistory.map((value) => marketChartColor(value, geometry.min, geometry.max)) : [];
+  const marketStops = marketColors.map((color, index) => {
+    const offset = marketColors.length === 1 ? 0 : (index / (marketColors.length - 1)) * 100;
+    return `<stop class="market-stop" offset="${offset.toFixed(2)}%" stop-color="${color}"></stop>`;
+  }).join("");
+  chart.innerHTML = geometry ? `<svg viewBox="0 0 ${chartWidth} ${chartHeight}" preserveAspectRatio="none" role="img" aria-label="SPY recent price trend">
+    <defs><linearGradient id="marketTrendStroke" gradientUnits="userSpaceOnUse" x1="4" y1="0" x2="${chartWidth - 4}" y2="0">${marketStops}</linearGradient></defs>
+    <path class="market-area" d="${geometry.area}"></path>
+    <path class="market-line market-gradient-line"${IS_ECHO_ROUTE ? ' pathLength="1"' : ""} vector-effect="non-scaling-stroke" d="${geometry.curve}"></path>
+    <path class="market-flow-line" vector-effect="non-scaling-stroke" d="${geometry.curve}"></path>
+  </svg>` : "";
   animateChartLine(chart);
 
   $("tickerList").innerHTML = ["QQQ", "IAU", "SLV"].map((symbol) => {
