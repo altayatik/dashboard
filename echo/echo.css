@@ -396,7 +396,7 @@ html[data-route="echo"] .mini-chart {
 }
 html[data-route="echo"] .market-line { stroke-width: 3; }
 html[data-route="echo"] .market-line.is-drawing { animation: draw .6s .05s ease-out both; }
-html[data-route="echo"] .market-area { animation: market-area-in .2s .65s ease-out both; }
+html[data-route="echo"] .market-area { animation: chart-area-in .2s .65s ease-out both; }
 
 html[data-route="echo"] .ticker-list {
   display: grid;
@@ -506,6 +506,8 @@ html[data-route="echo"] .forecast-score {
 html[data-route="echo"] .forecast-score strong { font-size: clamp(17px, 3.15vmin, 34px); }
 html[data-route="echo"] .forecast-score-track { height: clamp(6px, 1.11vmin, 12px); }
 html[data-route="echo"] .forecast-temp { font-size: clamp(16px, 2.96vmin, 32px); }
+html[data-route="echo"] .rain-meter { margin-top: clamp(7px, 1.3vmin, 14px); }
+html[data-route="echo"] .rain-track { height: clamp(5px, .93vmin, 10px); }
 html[data-route="echo"] .precip { font-size: clamp(11px, 2.04vmin, 22px); }
 
 html[data-route="echo"] .panel-note { display: none; }

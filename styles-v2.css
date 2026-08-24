@@ -639,7 +639,9 @@ html[data-theme="weather"][data-weather="snow"] .weather-precip {
 .market-gradient-line { stroke: url(#marketTrendStroke); }
 .market-flow-line { fill: none; stroke: rgba(255, 255, 255, .76); stroke-width: 1.05; stroke-linecap: round; stroke-dasharray: 1.5 18; animation: market-flow 2.8s linear infinite; }
 .market-line.is-drawing { animation: draw .65s .08s ease forwards; }
-.market-area { fill: url(#marketTrendStroke); opacity: 0; animation: market-gradient-area-in .5s .18s ease forwards; }
+.market-area { fill: url(#marketArea); opacity: 0; animation: chart-area-in .5s .18s ease forwards; }
+.market-guide { opacity: .7; }
+.market-dot { stroke: var(--market-dot, var(--accent)); }
 .ticker-list { flex: 0 0 auto; margin-top: 7px; border-top: 1px solid var(--line); }
 .ticker-row { display: grid; grid-template-columns: 1fr auto 58px; gap: 12px; align-items: center; padding: 5px 0; border-bottom: 1px solid var(--line); }
 .ticker-row:last-child { padding-bottom: 2px; border-bottom: 0; }
@@ -651,13 +653,13 @@ html[data-theme="weather"][data-weather="snow"] .weather-precip {
 .market-panel::after { display: none; }
 
 .route-list { display: grid; gap: 17px; margin-top: 28px; }
-.route { display: grid; grid-template-columns: 56px 1fr 50px; gap: 12px; align-items: center; }
+.route { --route-color: var(--accent); display: grid; grid-template-columns: 56px 1fr 50px; gap: 12px; align-items: center; }
 .route > span { font: 500 10px var(--mono); }
 .route > strong { color: var(--muted); font: 500 9px var(--mono); text-align: right; text-transform: uppercase; }
-.route-track { height: 6px; overflow: hidden; border-radius: 99px; background: var(--line); }
-.route-track i { display: block; width: var(--fill); height: 100%; border-radius: inherit; background: var(--accent); transform-origin: left; animation: grow 1s ease both; }
-.route[data-level="medium"] .route-track i { background: var(--accent-2); }
-.route[data-level="heavy"] .route-track i, .route[data-level="severe"] .route-track i { background: var(--negative); }
+.route-track { height: 6px; overflow: hidden; border-radius: 99px; background: var(--line); box-shadow: 0 0 7px color-mix(in srgb, var(--route-color) 10%, transparent); }
+.route-track i { display: block; width: var(--fill); height: 100%; border-radius: inherit; background: var(--route-color); box-shadow: 0 0 5px color-mix(in srgb, var(--route-color) 20%, transparent); transform-origin: left; animation: grow 1s ease both; }
+.route[data-level="medium"] { --route-color: var(--accent-2); }
+.route[data-level="heavy"], .route[data-level="severe"] { --route-color: var(--negative); }
 .reversible { display: flex; gap: 11px; align-items: center; margin-top: 25px; padding-top: 17px; border-top: 1px solid var(--line); }
 .reversible > span { display: grid; width: 31px; height: 31px; place-items: center; border-radius: 50%; background: color-mix(in srgb, var(--accent) 10%, transparent); }
 .reversible p { margin: 0; }
@@ -689,10 +691,10 @@ html[data-theme="weather"][data-weather="snow"] .weather-precip {
   gap: 6px;
   animation: forecast-score-in .55s cubic-bezier(.2, .78, .22, 1) both;
 }
-.forecast-score strong { min-width: 19px; color: var(--ink); font: 700 11px/1 var(--mono); }
+.forecast-score strong { min-width: 24px; color: var(--ink); font: 700 11px/1 var(--mono); }
 .forecast-score-track { position: relative; display: block; height: 6px; border-radius: 99px; background: color-mix(in srgb, var(--forecast-score-color) 14%, var(--line)); }
-.forecast-score-track::before { position: absolute; inset: -4px; border-radius: inherit; background: var(--forecast-score-color); opacity: .14; filter: blur(7px); content: ""; }
-.forecast-score-track i { position: relative; display: block; width: calc(var(--forecast-score) * 1%); height: 100%; border-radius: inherit; background: var(--forecast-score-color); box-shadow: 0 0 9px color-mix(in srgb, var(--forecast-score-color) 42%, transparent); transform-origin: left; animation: grow .85s .12s ease both; }
+.forecast-score-track::before { position: absolute; inset: -3px; border-radius: inherit; background: var(--forecast-score-color); opacity: .055; filter: blur(5px); content: ""; }
+.forecast-score-track i { position: relative; display: block; width: calc(var(--forecast-score) * 1%); height: 100%; border-radius: inherit; background: var(--forecast-score-color); box-shadow: 0 0 5px color-mix(in srgb, var(--forecast-score-color) 20%, transparent); transform-origin: left; animation: grow .85s .12s ease both; }
 .forecast-score[data-score-band="great"] { --forecast-score-color: #32b9aa; }
 .forecast-score[data-score-band="good"] { --forecast-score-color: #5cc4d9; }
 .forecast-score[data-score-band="mixed"] { --forecast-score-color: #f2b447; }
@@ -700,6 +702,11 @@ html[data-theme="weather"][data-weather="snow"] .weather-precip {
 .forecast-score[data-score-band="poor"] { --forecast-score-color: #d8534d; }
 .forecast-temp { display: flex; justify-content: space-between; gap: 4px; font: 500 10px var(--mono); }
 .forecast-temp span:last-child { color: var(--muted); }
+.rain-meter { --rain-color: #4aa77b; margin-top: 8px; }
+.rain-meter[data-rain-level="medium"] { --rain-color: #879399; }
+.rain-meter[data-rain-level="high"] { --rain-color: #438fc5; }
+.rain-track { display: block; height: 4px; overflow: hidden; border-radius: 99px; background: color-mix(in srgb, var(--rain-color) 12%, var(--line)); }
+.rain-track i { display: block; width: max(4px, calc(var(--rain-chance) * 1%)); height: 100%; border-radius: inherit; background: var(--rain-color); transform-origin: left; animation: grow .8s .18s ease both; }
 .precip { margin-top: 7px; color: var(--muted); font: 8px var(--mono); }
 
 footer {
@@ -847,6 +854,7 @@ html[data-theme="eink"] .temperature-stop { stop-color: var(--ink); }
 html[data-theme="eink"] .market-stop { stop-color: var(--ink); }
 html[data-theme="eink"] .chart-flow-line, html[data-theme="eink"] .market-flow-line { display: none; }
 html[data-theme="eink"] .forecast-score { --forecast-score-color: var(--ink) !important; }
+html[data-theme="eink"] .rain-meter, html[data-theme="eink"] .route { --rain-color: var(--ink) !important; --route-color: var(--ink) !important; }
 html[data-theme="eink"] *, html[data-theme="eink"] *::before, html[data-theme="eink"] *::after {
   animation: none !important;
   transition: none !important;
@@ -860,7 +868,6 @@ html[data-theme="eink"] *, html[data-theme="eink"] *::before, html[data-theme="e
 @keyframes forecast-score-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes chart-area-in { to { opacity: .18; } }
 @keyframes market-area-in { to { opacity: 1; } }
-@keyframes market-gradient-area-in { to { opacity: .14; } }
 @keyframes chart-dot-in { from { opacity: 0; transform: scale(.4); } to { opacity: 1; transform: scale(1); } }
 @keyframes score-pop { from { opacity: .25; transform: scale(.76); } to { opacity: 1; transform: scale(1); } }
 @keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }

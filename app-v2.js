@@ -544,6 +544,21 @@ function marketChartColor(value, min, max) {
   return `rgb(${channel(start[0], end[0], amount)} ${channel(start[1], end[1], amount)} ${channel(start[2], end[2], amount)})`;
 }
 
+function softChartCurve(points) {
+  if (!points?.length) return "";
+  if (points.length === 1) return `M${points[0].x.toFixed(2)},${points[0].y.toFixed(2)}`;
+  if (points.length === 2) return `M${points[0].x.toFixed(2)},${points[0].y.toFixed(2)} L${points[1].x.toFixed(2)},${points[1].y.toFixed(2)}`;
+  let path = `M${points[0].x.toFixed(2)},${points[0].y.toFixed(2)}`;
+  for (let index = 1; index < points.length - 1; index += 1) {
+    const point = points[index];
+    const next = points[index + 1];
+    const midpoint = { x: (point.x + next.x) / 2, y: (point.y + next.y) / 2 };
+    path += ` Q${point.x.toFixed(2)},${point.y.toFixed(2)} ${midpoint.x.toFixed(2)},${midpoint.y.toFixed(2)}`;
+  }
+  const last = points[points.length - 1];
+  return `${path} Q${last.x.toFixed(2)},${last.y.toFixed(2)} ${last.x.toFixed(2)},${last.y.toFixed(2)}`;
+}
+
 function renderWeatherChart(hourly) {
   const samples = (hourly?.time || []).map((time, index) => ({
     time,
@@ -634,6 +649,28 @@ function sunnyDayScoreBand(score) {
   return score >= 90 ? "great" : score >= 75 ? "good" : score >= 55 ? "mixed" : score >= 35 ? "risky" : "poor";
 }
 
+function sunnyDayLetterGrade(score) {
+  if (score >= 97) return "A+";
+  if (score >= 93) return "A";
+  if (score >= 90) return "A−";
+  if (score >= 87) return "B+";
+  if (score >= 83) return "B";
+  if (score >= 80) return "B−";
+  if (score >= 77) return "C+";
+  if (score >= 73) return "C";
+  if (score >= 70) return "C−";
+  if (score >= 67) return "D+";
+  if (score >= 63) return "D";
+  if (score >= 60) return "D−";
+  return "F";
+}
+
+function rainMeterLevel(chance) {
+  if (chance < 25) return "low";
+  if (chance < 55) return "medium";
+  return "high";
+}
+
 function forecastSunnyDayScore(daily, index) {
   let score = 100;
   const rain = number(daily?.precipitation_probability_max?.[index]) ?? 0;
@@ -682,9 +719,11 @@ function renderForecast(daily) {
       : `<span>${day}</span>`;
     const score = forecastSunnyDayScore(daily, index);
     const scoreLabel = sunnyDayScoreLabel(score);
+    const grade = sunnyDayLetterGrade(score);
+    const rainChance = Math.max(0, Math.min(100, number(rain[index]) ?? 0));
     return `<div class="forecast-day">
-      ${dateLabel}<div class="forecast-score" data-score-band="${sunnyDayScoreBand(score)}" style="--forecast-score:${score}" title="SunnyDay score ${score} · ${esc(scoreLabel)}" aria-label="SunnyDay score ${score}, ${esc(scoreLabel)}"><strong>${score}</strong><span class="forecast-score-track"><i></i></span></div>
-      <div><div class="forecast-temp"><span>${round(highs[index])}°</span><span>${round(lows[index])}°</span></div><div class="precip">${round(rain[index], 0)}% rain</div></div>
+      ${dateLabel}<div class="forecast-score" data-score-band="${sunnyDayScoreBand(score)}" style="--forecast-score:${score}" title="SunnyDay grade ${grade} · ${score}/100 · ${esc(scoreLabel)}" aria-label="SunnyDay grade ${grade}, ${esc(scoreLabel)}"><strong>${grade}</strong><span class="forecast-score-track"><i></i></span></div>
+      <div><div class="forecast-temp"><span>${round(highs[index])}°</span><span>${round(lows[index])}°</span></div><div class="rain-meter" data-rain-level="${rainMeterLevel(rainChance)}" style="--rain-chance:${rainChance}" title="${Math.round(rainChance)}% chance of rain" aria-label="${Math.round(rainChance)} percent chance of rain"><span class="rain-track"><i></i></span></div></div>
     </div>`;
   }).join("");
   const dryDays = rain.slice(1, 6).filter((chance) => number(chance) != null && number(chance) < 25).length;
@@ -723,16 +762,26 @@ function renderMarkets(markets) {
   const chartWidth = Math.max(140, Math.round(chart.clientWidth || 180));
   const chartHeight = Math.max(48, Math.round(chart.clientHeight || 60));
   const geometry = lineGeometry(spyHistory, chartWidth, chartHeight, 4, Math.abs(spyLast || 1) * .015);
+  const marketCurve = geometry ? softChartCurve(geometry.points) : "";
+  const marketCurveCommands = marketCurve.slice(marketCurve.search(/[LQ]/));
+  const marketArea = geometry ? `M${geometry.points[0].x.toFixed(2)},${chartHeight - 4} L${geometry.points[0].x.toFixed(2)},${geometry.points[0].y.toFixed(2)} ${marketCurveCommands} L${geometry.points[geometry.points.length - 1].x.toFixed(2)},${chartHeight - 4} Z` : "";
   const marketColors = geometry ? spyHistory.map((value) => marketChartColor(value, geometry.min, geometry.max)) : [];
   const marketStops = marketColors.map((color, index) => {
     const offset = marketColors.length === 1 ? 0 : (index / (marketColors.length - 1)) * 100;
     return `<stop class="market-stop" offset="${offset.toFixed(2)}%" stop-color="${color}"></stop>`;
   }).join("");
+  const marketDots = geometry ? geometry.points.filter((_, index) => index === 0 || index === geometry.points.length - 1)
+    .map(({ x, y }, dotIndex) => `<circle class="chart-dot market-dot" style="--market-dot:${marketColors[dotIndex === 0 ? 0 : marketColors.length - 1]}" cx="${x}" cy="${y}" r="3"></circle>`).join("") : "";
   chart.innerHTML = geometry ? `<svg viewBox="0 0 ${chartWidth} ${chartHeight}" preserveAspectRatio="none" role="img" aria-label="SPY recent price trend">
-    <defs><linearGradient id="marketTrendStroke" gradientUnits="userSpaceOnUse" x1="4" y1="0" x2="${chartWidth - 4}" y2="0">${marketStops}</linearGradient></defs>
-    <path class="market-area" d="${geometry.area}"></path>
-    <path class="market-line market-gradient-line"${IS_ECHO_ROUTE ? ' pathLength="1"' : ""} vector-effect="non-scaling-stroke" d="${geometry.curve}"></path>
-    <path class="market-flow-line" vector-effect="non-scaling-stroke" d="${geometry.curve}"></path>
+    <defs>
+      <linearGradient id="marketTrendStroke" gradientUnits="userSpaceOnUse" x1="4" y1="0" x2="${chartWidth - 4}" y2="0">${marketStops}</linearGradient>
+      <linearGradient id="marketArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--accent)"/><stop offset="1" stop-color="var(--accent)" stop-opacity="0"/></linearGradient>
+    </defs>
+    <path class="chart-guide market-guide" vector-effect="non-scaling-stroke" d="M4 4H${chartWidth - 4} M4 ${chartHeight / 2}H${chartWidth - 4} M4 ${chartHeight - 4}H${chartWidth - 4}"></path>
+    <path class="market-area" d="${marketArea}"></path>
+    <path class="market-line market-gradient-line"${IS_ECHO_ROUTE ? ' pathLength="1"' : ""} vector-effect="non-scaling-stroke" d="${marketCurve}"></path>
+    <path class="market-flow-line" vector-effect="non-scaling-stroke" d="${marketCurve}"></path>
+    ${marketDots}
   </svg>` : "";
   animateChartLine(chart);
 
