@@ -516,6 +516,22 @@ function animateChartLine(container) {
   line.classList.add("is-drawing");
 }
 
+function mixChartColor(from, to, amount) {
+  const ratio = Math.max(0, Math.min(1, amount));
+  const channel = (start, end) => Math.round(start + (end - start) * ratio);
+  const cool = [56, 151, 222];
+  const warm = [244, 166, 58];
+  const hot = [226, 82, 65];
+  const start = from === "cool" ? cool : warm;
+  const end = to === "warm" ? warm : hot;
+  return `rgb(${channel(start[0], end[0])} ${channel(start[1], end[1])} ${channel(start[2], end[2])})`;
+}
+
+function temperatureChartColor(value, min, max) {
+  const ratio = max === min ? .5 : (value - min) / (max - min);
+  return ratio <= .5 ? mixChartColor("cool", "warm", ratio * 2) : mixChartColor("warm", "hot", (ratio - .5) * 2);
+}
+
 function renderWeatherChart(hourly) {
   const samples = (hourly?.time || []).map((time, index) => ({
     time,
@@ -533,17 +549,26 @@ function renderWeatherChart(hourly) {
     $("weatherTimes").innerHTML = "";
     return;
   }
-  const dots = geometry.points.filter((_, index) => index === 0 || index === geometry.points.length - 1)
-    .map(({ x, y }) => `<circle class="chart-dot" cx="${x}" cy="${y}" r="4"></circle>`).join("");
   const guideTop = pad;
   const guideMiddle = height / 2;
   const guideBottom = height - pad;
+  const temperatureColors = values.map((value) => temperatureChartColor(value, geometry.min, geometry.max));
+  const temperatureStops = temperatureColors.map((color, index) => {
+    const offset = values.length === 1 ? 0 : (index / (values.length - 1)) * 100;
+    return `<stop class="temperature-stop" offset="${offset.toFixed(2)}%" stop-color="${color}"></stop>`;
+  }).join("");
+  const dots = geometry.points.filter((_, index) => index === 0 || index === geometry.points.length - 1)
+    .map(({ x, y }, dotIndex) => `<circle class="chart-dot temperature-dot" style="--temperature-dot:${temperatureColors[dotIndex === 0 ? 0 : temperatureColors.length - 1]}" cx="${x}" cy="${y}" r="4"></circle>`).join("");
   container.innerHTML = `
     <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" role="img" aria-label="Temperatures from ${Math.round(geometry.min)} to ${Math.round(geometry.max)} degrees">
-      <defs><linearGradient id="weatherArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--accent)"/><stop offset="1" stop-color="var(--accent)" stop-opacity="0"/></linearGradient></defs>
+      <defs>
+        <linearGradient id="weatherArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--accent)"/><stop offset="1" stop-color="var(--accent)" stop-opacity="0"/></linearGradient>
+        <linearGradient id="weatherTemperatureStroke" gradientUnits="userSpaceOnUse" x1="${pad}" y1="0" x2="${width - pad}" y2="0">${temperatureStops}</linearGradient>
+      </defs>
       <path class="chart-guide" vector-effect="non-scaling-stroke" d="M${pad} ${guideTop}H${width - pad} M${pad} ${guideMiddle}H${width - pad} M${pad} ${guideBottom}H${width - pad}"></path>
       <path class="chart-area" d="${geometry.area}"></path>
-      <path class="chart-line"${IS_ECHO_ROUTE ? ' pathLength="1"' : ""} vector-effect="non-scaling-stroke" d="${geometry.curve}"></path>${dots}
+      <path class="chart-line temperature-line"${IS_ECHO_ROUTE ? ' pathLength="1"' : ""} vector-effect="non-scaling-stroke" d="${geometry.curve}"></path>
+      <path class="chart-flow-line" vector-effect="non-scaling-stroke" d="${geometry.curve}"></path>${dots}
     </svg>`;
   animateChartLine(container);
   $("weatherRange").textContent = `${Math.round(geometry.max)}° HIGH · ${Math.round(geometry.min)}° LOW`;
@@ -585,11 +610,50 @@ function renderWeather(weather) {
   document.querySelector(".weather-panel")?.classList.remove("is-loading");
 }
 
+function sunnyDayScoreLabel(score) {
+  if (score >= 90) return "Great SunnyDay";
+  if (score >= 75) return "Pretty Good";
+  if (score >= 55) return "Mixed";
+  if (score >= 35) return "Risky";
+  return "Stay Inside";
+}
+
+function sunnyDayScoreBand(score) {
+  return score >= 90 ? "great" : score >= 75 ? "good" : score >= 55 ? "mixed" : score >= 35 ? "risky" : "poor";
+}
+
+function forecastSunnyDayScore(daily, index) {
+  let score = 100;
+  const rain = number(daily?.precipitation_probability_max?.[index]) ?? 0;
+  if (rain >= 70) score -= 45;
+  else if (rain >= 50) score -= 30;
+  else if (rain >= 30) score -= 16;
+  else if (rain >= 15) score -= 6;
+
+  const precipitation = number(daily?.precipitation_sum?.[index]);
+  if (precipitation != null && precipitation >= .25) score -= 15;
+
+  const sunshine = number(daily?.sunshine_duration?.[index]);
+  const daylight = number(daily?.daylight_duration?.[index]);
+  const sunshineRatio = sunshine != null && daylight ? sunshine / daylight : null;
+  if (sunshineRatio != null) {
+    if (sunshineRatio >= .7) score += 4;
+    else if (sunshineRatio < .35) score -= 14;
+    else if (sunshineRatio < .5) score -= 7;
+  }
+
+  const high = number(daily?.temperature_2m_max?.[index]) ?? 72;
+  if (high >= 100) score -= 22;
+  else if (high >= 92) score -= 10;
+  else if (high <= 32) score -= 18;
+  if ((number(daily?.uv_index_max?.[index]) ?? 0) >= 9) score -= 5;
+  return Math.round(Math.max(0, Math.min(100, score)));
+}
+
 function renderForecast(daily) {
   const dates = daily?.time || [];
   const highs = daily?.temperature_2m_max || [];
   const lows = daily?.temperature_2m_min || [];
-  const codes = daily?.weather_code || [];
   const rain = daily?.precipitation_probability_max || [];
   const days = dates.slice(1, 6);
   if (!days.length) {
@@ -604,8 +668,10 @@ function renderForecast(daily) {
     const dateLabel = IS_ECHO_ROUTE
       ? `<span class="forecast-date"><strong>${day}</strong><small>${calendarDay}</small></span>`
       : `<span>${day}</span>`;
+    const score = forecastSunnyDayScore(daily, index);
+    const scoreLabel = sunnyDayScoreLabel(score);
     return `<div class="forecast-day">
-      ${dateLabel}<div class="forecast-icon" title="${esc(weatherText(codes[index]))}">${weatherGlyph(codes[index])}</div>
+      ${dateLabel}<div class="forecast-score" data-score-band="${sunnyDayScoreBand(score)}" style="--forecast-score:${score}" title="SunnyDay score ${score} · ${esc(scoreLabel)}" aria-label="SunnyDay score ${score}, ${esc(scoreLabel)}"><strong>${score}</strong><small>SD</small></div>
       <div><div class="forecast-temp"><span>${round(highs[index])}°</span><span>${round(lows[index])}°</span></div><div class="precip">${round(rain[index], 0)}% rain</div></div>
     </div>`;
   }).join("");
@@ -642,6 +708,8 @@ function renderMarkets(markets) {
   $("spyDelta").className = `delta ${spyChange > 0 ? "positive" : spyChange < 0 ? "negative" : ""}`;
 
   const chart = $("spyChart");
+  const spyTrend = spyHistory.length > 1 ? spyLast - spyHistory[0] : spyChange;
+  chart.dataset.trend = spyTrend > 0 ? "positive" : spyTrend < 0 ? "negative" : "flat";
   const chartWidth = Math.max(140, Math.round(chart.clientWidth || 180));
   const chartHeight = Math.max(48, Math.round(chart.clientHeight || 60));
   const geometry = lineGeometry(spyHistory, chartWidth, chartHeight, 4, Math.abs(spyLast || 1) * .015);

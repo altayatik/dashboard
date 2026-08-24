@@ -498,7 +498,13 @@ html[data-route="echo"] .forecast-date small {
   font-size: clamp(11px, 2.04vmin, 22px);
   white-space: nowrap;
 }
-html[data-route="echo"] .forecast-icon { font-size: clamp(32px, 5.93vmin, 64px); }
+html[data-route="echo"] .forecast-score {
+  width: clamp(42px, 7.78vmin, 84px);
+  height: clamp(42px, 7.78vmin, 84px);
+}
+html[data-route="echo"] .forecast-score::before { inset: clamp(3px, .56vmin, 6px); }
+html[data-route="echo"] .forecast-score strong { font-size: clamp(17px, 3.15vmin, 34px); }
+html[data-route="echo"] .forecast-score small { margin-top: clamp(2px, .37vmin, 4px); font-size: clamp(8px, 1.48vmin, 16px); }
 html[data-route="echo"] .forecast-temp { font-size: clamp(16px, 2.96vmin, 32px); }
 html[data-route="echo"] .precip { font-size: clamp(11px, 2.04vmin, 22px); }
 
