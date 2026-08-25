@@ -574,6 +574,23 @@ function softChartCurve(points) {
   return `${path} Q${last.x.toFixed(2)},${last.y.toFixed(2)} ${last.x.toFixed(2)},${last.y.toFixed(2)}`;
 }
 
+function chartSheenGradient(id, width, duration) {
+  const start = Math.round(width * -.42);
+  const lead = Math.round(width * -.12);
+  const end = Math.round(width * 1.08);
+  const trail = Math.round(width * 1.38);
+  const motion = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "" : `
+    <animate attributeName="x1" values="${start};${start};${end};${end}" keyTimes="0;0.14;0.8;1" dur="${duration}s" repeatCount="indefinite"></animate>
+    <animate attributeName="x2" values="${lead};${lead};${trail};${trail}" keyTimes="0;0.14;0.8;1" dur="${duration}s" repeatCount="indefinite"></animate>`;
+  return `<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="${start}" y1="0" x2="${lead}" y2="0">
+    <stop offset="0" stop-color="#fff" stop-opacity="0"></stop>
+    <stop offset=".32" stop-color="#fff" stop-opacity=".04"></stop>
+    <stop offset=".5" stop-color="#fff" stop-opacity=".62"></stop>
+    <stop offset=".68" stop-color="#fff" stop-opacity=".04"></stop>
+    <stop offset="1" stop-color="#fff" stop-opacity="0"></stop>${motion}
+  </linearGradient>`;
+}
+
 function renderWeatherChart(hourly) {
   const samples = (hourly?.time || []).map((time, index) => ({
     time,
@@ -606,6 +623,7 @@ function renderWeatherChart(hourly) {
       <defs>
         <linearGradient id="weatherArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--accent)"/><stop offset="1" stop-color="var(--accent)" stop-opacity="0"/></linearGradient>
         <linearGradient id="weatherTemperatureStroke" gradientUnits="userSpaceOnUse" x1="${pad}" y1="0" x2="${width - pad}" y2="0">${temperatureStops}</linearGradient>
+        ${chartSheenGradient("weatherLineSheen", width, 12)}
       </defs>
       <path class="chart-guide" vector-effect="non-scaling-stroke" d="M${pad} ${guideTop}H${width - pad} M${pad} ${guideMiddle}H${width - pad} M${pad} ${guideBottom}H${width - pad}"></path>
       <path class="chart-area" d="${geometry.area}"></path>
@@ -792,6 +810,7 @@ function renderMarkets(markets) {
     <defs>
       <linearGradient id="marketTrendStroke" gradientUnits="userSpaceOnUse" x1="4" y1="0" x2="${chartWidth - 4}" y2="0">${marketStops}</linearGradient>
       <linearGradient id="marketArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--accent)"/><stop offset="1" stop-color="var(--accent)" stop-opacity="0"/></linearGradient>
+      ${chartSheenGradient("marketLineSheen", chartWidth, 11)}
     </defs>
     <path class="chart-guide market-guide" vector-effect="non-scaling-stroke" d="M4 4H${chartWidth - 4} M4 ${chartHeight / 2}H${chartWidth - 4} M4 ${chartHeight - 4}H${chartWidth - 4}"></path>
     <path class="market-area" d="${marketArea}"></path>

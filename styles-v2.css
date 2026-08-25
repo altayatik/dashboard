@@ -630,14 +630,10 @@ html[data-theme="weather"][data-weather="snow"] .weather-precip {
 .temperature-line { stroke: url(#weatherTemperatureStroke); }
 .chart-flow-line {
   fill: none;
-  stroke: rgba(255, 255, 255, .72);
-  stroke-width: 4;
+  stroke: url(#weatherLineSheen);
+  stroke-width: 3.4;
   stroke-linecap: round;
-  stroke-dasharray: .09 .91;
-  stroke-dashoffset: .09;
-  opacity: .26;
-  filter: blur(.75px) drop-shadow(0 0 3px rgba(255, 255, 255, .32));
-  animation: chart-glow-flow 8.5s linear infinite;
+  opacity: .46;
 }
 .chart-line.is-drawing { animation: draw .75s .08s ease forwards; }
 .chart-area { fill: url(#weatherArea); opacity: 0; animation: chart-area-in .55s .2s ease forwards; }
@@ -675,14 +671,10 @@ html[data-theme="weather"][data-weather="snow"] .weather-precip {
 .market-gradient-line { stroke: url(#marketTrendStroke); }
 .market-flow-line {
   fill: none;
-  stroke: rgba(255, 255, 255, .76);
-  stroke-width: 3.5;
+  stroke: url(#marketLineSheen);
+  stroke-width: 3.2;
   stroke-linecap: round;
-  stroke-dasharray: .09 .91;
-  stroke-dashoffset: .09;
-  opacity: .25;
-  filter: blur(.65px) drop-shadow(0 0 2.5px rgba(255, 255, 255, .3));
-  animation: chart-glow-flow 7.8s linear infinite;
+  opacity: .42;
 }
 .market-line.is-drawing { animation: draw .65s .08s ease forwards; }
 .market-area { fill: url(#marketArea); opacity: 0; animation: chart-area-in .5s .18s ease forwards; }
@@ -910,7 +902,6 @@ html[data-theme="eink"] *, html[data-theme="eink"] *::before, html[data-theme="e
 @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes pulse { 0%, 55% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--positive) 22%, transparent); } 100% { box-shadow: 0 0 0 9px transparent; } }
 @keyframes draw { to { stroke-dashoffset: 0; } }
-@keyframes chart-glow-flow { to { stroke-dashoffset: -.91; } }
 @keyframes forecast-score-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes chart-area-in { to { opacity: .18; } }
 @keyframes market-area-in { to { opacity: 1; } }
