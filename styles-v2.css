@@ -719,8 +719,8 @@ html[data-theme="weather"][data-weather="snow"] .weather-precip {
 .forecast-score[data-score-band="poor"] { --forecast-score-color: #d8534d; }
 .forecast-temp { display: flex; justify-content: space-between; gap: 4px; font: 500 10px var(--mono); }
 .forecast-temp span:last-child { color: var(--muted); }
-.rain-meter { --rain-color: #4aa77b; display: grid; grid-template-columns: 7px minmax(0, 1fr); align-items: center; gap: 6px; margin-top: 8px; }
-.rain-meter::before { width: 6px; height: 8px; border-radius: 55% 55% 55% 12%; background: var(--rain-color); content: ""; transform: rotate(-45deg); opacity: .9; }
+.rain-meter { --rain-color: #4aa77b; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 6px; margin-top: 8px; }
+.rain-meter::before { color: var(--rain-color); content: "RAIN"; font: 650 6px/1 var(--mono); letter-spacing: .06em; opacity: .78; }
 .rain-meter[data-rain-level="medium"] { --rain-color: #879399; }
 .rain-meter[data-rain-level="high"] { --rain-color: #438fc5; }
 .rain-track { display: block; height: 4px; overflow: hidden; border-radius: 99px; background: color-mix(in srgb, var(--rain-color) 12%, var(--line)); }
@@ -1301,13 +1301,15 @@ html[data-display="echo"][data-theme="afterdark"] .star-field-two { animation: e
 
 /* The regular dashboard shares Echo's calmer hierarchy, while retaining its
    own responsive information density and device-specific navigation. */
+html[data-route="dashboard"] .topbar { display: none; }
+html[data-route="dashboard"] .shell { grid-template-rows: auto minmax(0, 1fr) auto; }
+
 @media (min-width: 1101px) {
   html[data-route="dashboard"] .shell {
     width: min(1500px, calc(100% - clamp(40px, 4vw, 76px)));
     padding: clamp(14px, 2vh, 22px) 0;
-    grid-template-rows: clamp(42px, 5vh, 52px) clamp(122px, 16vh, 158px) minmax(0, 1fr) auto;
+    grid-template-rows: clamp(122px, 16vh, 158px) minmax(0, 1fr) auto;
   }
-  html[data-route="dashboard"] .topbar { min-height: 0; }
   html[data-route="dashboard"] .intro {
     display: grid;
     grid-template-columns: minmax(320px, 1fr) auto auto;
@@ -1381,6 +1383,7 @@ html[data-display="echo"][data-theme="afterdark"] .star-field-two { animation: e
 }
 
 @media (max-width: 720px) {
+  html[data-route="dashboard"] .shell { grid-template-rows: auto auto minmax(0, 1fr) auto; }
   html[data-route="dashboard"] .intro { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto; align-items: end; gap: 6px 10px; }
   html[data-route="dashboard"] .intro > div:first-child { display: contents; }
   html[data-route="dashboard"] .intro .eyebrow { grid-column: 1; grid-row: 1; margin: 0; }
@@ -1396,7 +1399,7 @@ html[data-display="echo"][data-theme="afterdark"] .star-field-two { animation: e
   html[data-route="dashboard"] .world-panel .panel-kicker { display: none; }
   html[data-route="dashboard"] .forecast-title > p:last-child { display: none; }
   html[data-route="dashboard"] .forecast-title .panel-kicker { margin: 0; color: var(--ink); font: 750 clamp(21px, 6vw, 27px)/1.1 var(--sans); letter-spacing: -.025em; }
-  html[data-route="dashboard"] .rain-meter { grid-template-columns: 8px minmax(0, 1fr); }
+  html[data-route="dashboard"] .rain-meter::before { font-size: 7px; }
 }
 
 @media (max-width: 420px) {
