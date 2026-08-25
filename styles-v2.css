@@ -631,9 +631,9 @@ html[data-theme="weather"][data-weather="snow"] .weather-precip {
 .chart-flow-line {
   fill: none;
   stroke: url(#weatherLineSheen);
-  stroke-width: 3.4;
+  stroke-width: 4.2;
   stroke-linecap: round;
-  opacity: .46;
+  opacity: .72;
 }
 .chart-line.is-drawing { animation: draw .75s .08s ease forwards; }
 .chart-area { fill: url(#weatherArea); opacity: 0; animation: chart-area-in .55s .2s ease forwards; }
@@ -672,9 +672,9 @@ html[data-theme="weather"][data-weather="snow"] .weather-precip {
 .market-flow-line {
   fill: none;
   stroke: url(#marketLineSheen);
-  stroke-width: 3.2;
+  stroke-width: 3.9;
   stroke-linecap: round;
-  opacity: .42;
+  opacity: .68;
 }
 .market-line.is-drawing { animation: draw .65s .08s ease forwards; }
 .market-area { fill: url(#marketArea); opacity: 0; animation: chart-area-in .5s .18s ease forwards; }

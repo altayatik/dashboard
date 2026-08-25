@@ -584,9 +584,9 @@ function chartSheenGradient(id, width, duration) {
     <animate attributeName="x2" values="${lead};${lead};${trail};${trail}" keyTimes="0;0.14;0.8;1" dur="${duration}s" repeatCount="indefinite"></animate>`;
   return `<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="${start}" y1="0" x2="${lead}" y2="0">
     <stop offset="0" stop-color="#fff" stop-opacity="0"></stop>
-    <stop offset=".32" stop-color="#fff" stop-opacity=".04"></stop>
-    <stop offset=".5" stop-color="#fff" stop-opacity=".62"></stop>
-    <stop offset=".68" stop-color="#fff" stop-opacity=".04"></stop>
+    <stop offset=".3" stop-color="#fff" stop-opacity=".12"></stop>
+    <stop offset=".5" stop-color="#fff" stop-opacity=".9"></stop>
+    <stop offset=".7" stop-color="#fff" stop-opacity=".12"></stop>
     <stop offset="1" stop-color="#fff" stop-opacity="0"></stop>${motion}
   </linearGradient>`;
 }
