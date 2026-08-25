@@ -177,7 +177,8 @@ html[data-theme="afterdark"] .star-field-two {
 
 html[data-theme="afterdark"] .weather-orb {
   top: -64px;
-  right: 7%;
+  right: auto;
+  left: calc(42% - clamp(80px, 8.5vw, 115px));
   width: clamp(160px, 17vw, 230px);
   height: auto;
   aspect-ratio: 1;
@@ -555,6 +556,44 @@ html[data-theme="weather"][data-weather="snow"] .weather-precip {
 .panel-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
 .panel-head .panel-kicker { margin-bottom: 6px; }
 .panel h2 { margin: 0; font-size: 17px; line-height: 1.25; letter-spacing: -.025em; font-weight: 650; }
+.title-label { display: flex; align-items: center; gap: .42em; }
+.title-icon {
+  display: inline-grid;
+  width: 1.15em;
+  height: 1.15em;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: .34em;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 11%, transparent);
+  font: 700 .68em/1 var(--sans);
+  letter-spacing: 0;
+  filter: grayscale(.18);
+}
+.title-icon--car { position: relative; filter: none; }
+.title-icon--car::before {
+  position: absolute;
+  top: 31%;
+  left: 19%;
+  width: 62%;
+  height: 35%;
+  border-radius: 30% 36% 20% 20%;
+  background: currentColor;
+  clip-path: polygon(17% 0, 68% 0, 87% 38%, 100% 47%, 100% 100%, 0 100%, 0 47%);
+  content: "";
+}
+.title-icon--car::after {
+  position: absolute;
+  bottom: 17%;
+  left: 27%;
+  width: 14%;
+  aspect-ratio: 1;
+  border: .07em solid color-mix(in srgb, var(--surface-solid) 90%, transparent);
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: .32em 0 0 -.07em currentColor, .32em 0 0 0 color-mix(in srgb, var(--surface-solid) 90%, transparent);
+  content: "";
+}
 .status-chip, .market-state, .tiny-time {
   flex: 0 0 auto;
   border-radius: 999px;

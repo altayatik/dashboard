@@ -462,7 +462,7 @@ html[data-route="echo"] .reversible small { display: none; }
 html[data-route="echo"] .reversible strong { font-size: clamp(16px, 2.96vmin, 32px); }
 
 html[data-route="echo"] .forecast-title .panel-kicker {
-  display: block;
+  display: flex;
   margin: 0;
   color: var(--ink);
   font: 750 clamp(22px, 4.07vmin, 44px)/1.08 var(--sans);

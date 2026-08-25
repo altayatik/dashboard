@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-route="echo" data-theme="weather" data-build="20260824-7">
+<html lang="en" data-route="echo" data-theme="weather" data-build="20260824-8">
 <head>
   <meta charset="utf-8">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -31,8 +31,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../styles-v2.css?v=20260824-7">
-  <link rel="stylesheet" href="echo.css?v=20260824-7">
+  <link rel="stylesheet" href="../styles-v2.css?v=20260824-8">
+  <link rel="stylesheet" href="echo.css?v=20260824-8">
 </head>
 <body class="is-echo-route">
   <div class="ambient ambient-one" aria-hidden="true"></div>
@@ -78,8 +78,8 @@
         </div>
         <div class="panel-head">
           <div>
-            <p class="panel-kicker"><span class="weather-glyph" id="weatherGlyph">○</span> WEATHER</p>
-            <h2 id="weatherSummary">Loading Chicago sky…</h2>
+            <p class="panel-kicker">WEATHER</p>
+            <h2 class="title-label"><span class="title-icon weather-glyph" id="weatherGlyph" aria-hidden="true">○</span><span id="weatherSummary">Loading Chicago sky…</span></h2>
           </div>
           <span class="status-chip" id="weatherStatus">LIVE</span>
         </div>
@@ -129,7 +129,7 @@
 
       <article class="panel market-panel is-loading" data-detail="markets" tabindex="0" role="button" aria-label="Open detailed markets">
         <div class="skeleton-layer skeleton-card" aria-hidden="true"><span class="skeleton-short"></span><span class="skeleton-medium"></span><span class="skeleton-value"></span><span class="skeleton-chart-small"></span><span class="skeleton-rows"></span></div>
-        <div class="panel-head"><div><p class="panel-kicker">MARKET PULSE</p><h2>Markets</h2></div><span class="market-state" id="marketState">CHECKING</span></div>
+        <div class="panel-head"><div><p class="panel-kicker">MARKET PULSE</p><h2 class="title-label"><span class="title-icon" aria-hidden="true">↗</span><span>Markets</span></h2></div><span class="market-state" id="marketState">CHECKING</span></div>
         <div class="market-feature">
           <div><p><strong>SPY</strong><span>S&amp;P 500 ETF</span></p><h3 id="spyPrice">—</h3><span class="delta" id="spyDelta">—</span></div>
           <div class="mini-chart" id="spyChart" aria-label="SPY five-day chart"></div>
@@ -140,7 +140,7 @@
 
       <article class="panel commute-panel is-loading" data-detail="traffic" tabindex="0" role="button" aria-label="Open detailed traffic">
         <div class="skeleton-layer skeleton-card" aria-hidden="true"><span class="skeleton-short"></span><span class="skeleton-medium"></span><span class="skeleton-route"></span><span class="skeleton-route"></span><span class="skeleton-route"></span></div>
-        <div class="panel-head"><div><p class="panel-kicker">CHICAGO TRAFFIC</p><h2>Traffic</h2></div><span class="tiny-time" id="trafficUpdated">NOW</span></div>
+        <div class="panel-head"><div><p class="panel-kicker">CHICAGO TRAFFIC</p><h2 class="title-label"><span class="title-icon title-icon--car" aria-hidden="true"></span><span>Traffic</span></h2></div><span class="tiny-time" id="trafficUpdated">NOW</span></div>
         <div class="route-list" id="routeList">
           <div class="route"><span>I-90/94</span><div class="route-track"><i style="--fill:35%"></i></div><strong>—</strong></div>
           <div class="route"><span>I-290</span><div class="route-track"><i style="--fill:35%"></i></div><strong>—</strong></div>
@@ -156,7 +156,7 @@
 
       <article class="panel forecast-panel is-loading" data-detail="forecast" tabindex="0" role="button" aria-label="Open detailed forecast">
         <div class="skeleton-layer skeleton-forecast" aria-hidden="true"><span class="skeleton-medium"></span><span class="skeleton-value"></span><span class="skeleton-days"></span></div>
-        <div class="forecast-title"><p class="panel-kicker">5-DAY FORECAST</p><p id="forecastNarrative">A quick read on the next few days.</p></div>
+        <div class="forecast-title"><p class="panel-kicker title-label"><span class="title-icon" aria-hidden="true">▦</span><span>Forecast</span></p><p id="forecastNarrative">A quick read on the next few days.</p></div>
         <div class="forecast-days" id="forecastDays"></div>
       </article>
     </section>
@@ -173,6 +173,6 @@
 
   <script>window.__PRELOADED_DASHBOARD__ = null;</script>
   <script src="../config.js"></script>
-  <script type="module" src="../app-v2.js?v=20260824-7"></script>
+  <script type="module" src="../app-v2.js?v=20260824-8"></script>
 </body>
 </html>
