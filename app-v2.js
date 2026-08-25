@@ -368,6 +368,16 @@ function weatherKind(code, isDay = true) {
   return "cloud";
 }
 
+function weatherTitleIcon(code, isDay = true) {
+  if (code === 0 || code === 1) return isDay ? "sun" : "moon";
+  if (code === 45 || code === 48) return "fog";
+  if (code >= 51 && code <= 67) return "rain";
+  if (code >= 71 && code <= 77) return "snow";
+  if (code >= 80 && code <= 82) return "rain";
+  if (code >= 95) return "storm";
+  return "cloud";
+}
+
 function dateParts(date = new Date(), timezone = TIMEZONE) {
   return Object.fromEntries(new Intl.DateTimeFormat("en-US", {
     timeZone: timezone,
@@ -625,7 +635,8 @@ function renderWeather(weather) {
   };
   document.documentElement.dataset.weather = weatherKind(code, current.is_day !== 0);
   $("locationLabel").textContent = weather?.location?.label === "Default" ? "Chicago, IL" : (weather?.location?.label || "Chicago, IL");
-  $("weatherGlyph").textContent = weatherGlyph(code, current.is_day !== 0);
+  $("weatherGlyph").textContent = "";
+  $("weatherGlyph").dataset.icon = weatherTitleIcon(code, current.is_day !== 0);
   $("weatherSummary").textContent = weatherText(code);
   $("temperature").textContent = round(current.temperature_2m);
   $("feelsLike").textContent = `${round(current.apparent_temperature)}°`;
