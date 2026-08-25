@@ -485,32 +485,10 @@ html[data-theme="weather"][data-weather="snow"] .weather-precip {
 
 .panel[data-detail] {
   cursor: pointer;
-  transition: transform .28s cubic-bezier(.2,.75,.25,1), border-color .25s ease, box-shadow .25s ease;
-}
-.panel[data-detail]:hover {
-  z-index: 2;
-  transform: translateY(-3px);
-  border-color: color-mix(in srgb, var(--accent) 38%, var(--line));
-  box-shadow: 0 28px 72px color-mix(in srgb, var(--accent) 12%, transparent);
 }
 .panel[data-detail]:focus-visible {
   outline: 3px solid color-mix(in srgb, var(--accent) 36%, transparent);
-  outline-offset: 3px;
-}
-.panel[data-detail]::after {
-  content: "↗";
-  position: absolute;
-  right: 18px;
-  bottom: 15px;
-  color: var(--muted);
-  font: 10px var(--mono);
-  opacity: 0;
-  transform: translate(-3px, 3px);
-  transition: opacity .2s ease, transform .2s ease;
-}
-.panel[data-detail]:hover::after, .panel[data-detail]:focus-visible::after {
-  opacity: .75;
-  transform: translate(0, 0);
+  outline-offset: -3px;
 }
 
 .panel.is-loading > :not(.skeleton-layer) { opacity: 0; }
@@ -619,7 +597,7 @@ html[data-theme="weather"][data-weather="snow"] .weather-precip {
   text-decoration: none;
   transition: transform .2s ease, border-color .2s ease, color .2s ease;
 }
-.sunnyday-score:hover { transform: translateY(-1px); border-color: var(--accent); color: var(--ink); }
+.sunnyday-score:hover { border-color: var(--accent); color: var(--ink); }
 .sunnyday-score-copy { display: grid; min-width: 0; gap: 3px; }
 .sunnyday-score-copy small { color: var(--ink); font: 700 7px/1 var(--mono); letter-spacing: .09em; }
 .sunnyday-score-copy > span { overflow: hidden; max-width: 62px; color: var(--muted); font: 500 6px/1 var(--mono); letter-spacing: .04em; text-overflow: ellipsis; white-space: nowrap; }
