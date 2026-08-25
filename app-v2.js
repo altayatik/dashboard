@@ -600,7 +600,7 @@ function renderWeatherChart(hourly) {
       <path class="chart-guide" vector-effect="non-scaling-stroke" d="M${pad} ${guideTop}H${width - pad} M${pad} ${guideMiddle}H${width - pad} M${pad} ${guideBottom}H${width - pad}"></path>
       <path class="chart-area" d="${geometry.area}"></path>
       <path class="chart-line temperature-line"${IS_ECHO_ROUTE ? ' pathLength="1"' : ""} vector-effect="non-scaling-stroke" d="${geometry.curve}"></path>
-      <path class="chart-flow-line" vector-effect="non-scaling-stroke" d="${geometry.curve}"></path>${dots}
+      <path class="chart-flow-line" pathLength="1" vector-effect="non-scaling-stroke" d="${geometry.curve}"></path>${dots}
     </svg>`;
   animateChartLine(container);
   $("weatherRange").textContent = `${Math.round(geometry.max)}° HIGH · ${Math.round(geometry.min)}° LOW`;
@@ -785,7 +785,7 @@ function renderMarkets(markets) {
     <path class="chart-guide market-guide" vector-effect="non-scaling-stroke" d="M4 4H${chartWidth - 4} M4 ${chartHeight / 2}H${chartWidth - 4} M4 ${chartHeight - 4}H${chartWidth - 4}"></path>
     <path class="market-area" d="${marketArea}"></path>
     <path class="market-line market-gradient-line"${IS_ECHO_ROUTE ? ' pathLength="1"' : ""} vector-effect="non-scaling-stroke" d="${marketCurve}"></path>
-    <path class="market-flow-line" vector-effect="non-scaling-stroke" d="${marketCurve}"></path>
+    <path class="market-flow-line" pathLength="1" vector-effect="non-scaling-stroke" d="${marketCurve}"></path>
     ${marketDots}
   </svg>` : "";
   animateChartLine(chart);

@@ -658,7 +658,17 @@ html[data-theme="weather"][data-weather="snow"] .weather-precip {
 .chart-canvas svg, .mini-chart svg { width: 100%; height: 100%; overflow: visible; }
 .chart-line { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: var(--line-length, 1000); stroke-dashoffset: var(--line-length, 1000); }
 .temperature-line { stroke: url(#weatherTemperatureStroke); }
-.chart-flow-line { fill: none; stroke: rgba(255, 255, 255, .72); stroke-width: 1.25; stroke-linecap: round; stroke-dasharray: 2 24; animation: temperature-flow 3.2s linear infinite; }
+.chart-flow-line {
+  fill: none;
+  stroke: rgba(255, 255, 255, .72);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-dasharray: .09 .91;
+  stroke-dashoffset: .09;
+  opacity: .26;
+  filter: blur(.75px) drop-shadow(0 0 3px rgba(255, 255, 255, .32));
+  animation: chart-glow-flow 8.5s linear infinite;
+}
 .chart-line.is-drawing { animation: draw .75s .08s ease forwards; }
 .chart-area { fill: url(#weatherArea); opacity: 0; animation: chart-area-in .55s .2s ease forwards; }
 .chart-guide { stroke: var(--line); stroke-width: 1; stroke-dasharray: 3 5; }
@@ -693,7 +703,17 @@ html[data-theme="weather"][data-weather="snow"] .weather-precip {
 .mini-chart { height: 52px; }
 .market-line { fill: none; stroke: var(--accent); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: var(--line-length, 1000); stroke-dashoffset: var(--line-length, 1000); }
 .market-gradient-line { stroke: url(#marketTrendStroke); }
-.market-flow-line { fill: none; stroke: rgba(255, 255, 255, .76); stroke-width: 1.05; stroke-linecap: round; stroke-dasharray: 1.5 18; animation: market-flow 2.8s linear infinite; }
+.market-flow-line {
+  fill: none;
+  stroke: rgba(255, 255, 255, .76);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-dasharray: .09 .91;
+  stroke-dashoffset: .09;
+  opacity: .25;
+  filter: blur(.65px) drop-shadow(0 0 2.5px rgba(255, 255, 255, .3));
+  animation: chart-glow-flow 7.8s linear infinite;
+}
 .market-line.is-drawing { animation: draw .65s .08s ease forwards; }
 .market-area { fill: url(#marketArea); opacity: 0; animation: chart-area-in .5s .18s ease forwards; }
 .market-guide { opacity: .7; }
@@ -920,8 +940,7 @@ html[data-theme="eink"] *, html[data-theme="eink"] *::before, html[data-theme="e
 @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes pulse { 0%, 55% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--positive) 22%, transparent); } 100% { box-shadow: 0 0 0 9px transparent; } }
 @keyframes draw { to { stroke-dashoffset: 0; } }
-@keyframes temperature-flow { to { stroke-dashoffset: -52; } }
-@keyframes market-flow { to { stroke-dashoffset: -39; } }
+@keyframes chart-glow-flow { to { stroke-dashoffset: -.91; } }
 @keyframes forecast-score-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes chart-area-in { to { opacity: .18; } }
 @keyframes market-area-in { to { opacity: 1; } }
