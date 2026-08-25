@@ -702,7 +702,8 @@ html[data-theme="weather"][data-weather="snow"] .weather-precip {
 .forecast-score[data-score-band="poor"] { --forecast-score-color: #d8534d; }
 .forecast-temp { display: flex; justify-content: space-between; gap: 4px; font: 500 10px var(--mono); }
 .forecast-temp span:last-child { color: var(--muted); }
-.rain-meter { --rain-color: #4aa77b; margin-top: 8px; }
+.rain-meter { --rain-color: #4aa77b; display: grid; grid-template-columns: 7px minmax(0, 1fr); align-items: center; gap: 6px; margin-top: 8px; }
+.rain-meter::before { width: 6px; height: 8px; border-radius: 55% 55% 55% 12%; background: var(--rain-color); content: ""; transform: rotate(-45deg); opacity: .9; }
 .rain-meter[data-rain-level="medium"] { --rain-color: #879399; }
 .rain-meter[data-rain-level="high"] { --rain-color: #438fc5; }
 .rain-track { display: block; height: 4px; overflow: hidden; border-radius: 99px; background: color-mix(in srgb, var(--rain-color) 12%, var(--line)); }
@@ -1276,6 +1277,116 @@ html[data-display="echo"] .precip { font-size: clamp(7px, 1vmin, 11px); }
 html[data-display="echo"][data-theme="afterdark"] .star-field-one { animation: echo-stars-pulse 3.6s ease-in-out infinite alternate; }
 html[data-display="echo"][data-theme="afterdark"] .star-field-two { animation: echo-stars-pulse 5s 1.1s ease-in-out infinite alternate-reverse; }
 @keyframes echo-stars-pulse { from { opacity: .28; } to { opacity: .82; } }
+
+/* The regular dashboard shares Echo's calmer hierarchy, while retaining its
+   own responsive information density and device-specific navigation. */
+@media (min-width: 1101px) {
+  html[data-route="dashboard"] .shell {
+    width: min(1500px, calc(100% - clamp(40px, 4vw, 76px)));
+    padding: clamp(14px, 2vh, 22px) 0;
+    grid-template-rows: clamp(42px, 5vh, 52px) clamp(122px, 16vh, 158px) minmax(0, 1fr) auto;
+  }
+  html[data-route="dashboard"] .topbar { min-height: 0; }
+  html[data-route="dashboard"] .intro {
+    display: grid;
+    grid-template-columns: minmax(320px, 1fr) auto auto;
+    align-items: end;
+    gap: clamp(18px, 2vw, 34px);
+    padding: clamp(14px, 2vh, 22px) 6px clamp(14px, 2vh, 22px);
+  }
+  html[data-route="dashboard"] .intro > div:first-child { display: contents; }
+  html[data-route="dashboard"] .intro h1 {
+    grid-column: 1;
+    font-size: clamp(38px, 3.8vw, 60px);
+    line-height: .98;
+    white-space: nowrap;
+  }
+  html[data-route="dashboard"] .intro .eyebrow {
+    grid-column: 2;
+    margin: 0 0 7px;
+    font-size: clamp(11px, .9vw, 14px);
+    font-weight: 650;
+    white-space: nowrap;
+  }
+  html[data-route="dashboard"] .local-time {
+    grid-column: 3;
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+  }
+  html[data-route="dashboard"] .local-time p { display: none; }
+  html[data-route="dashboard"] .local-time time { font-size: clamp(46px, 4.8vw, 72px); line-height: .82; font-weight: 600; }
+  html[data-route="dashboard"] .local-time span { padding-bottom: 3px; font-size: clamp(11px, 1vw, 15px); }
+  html[data-route="dashboard"] .dashboard-grid { gap: clamp(14px, 1.3vw, 20px); }
+  html[data-route="dashboard"] .panel {
+    padding: clamp(20px, 1.8vw, 28px);
+    border-radius: clamp(22px, 2vw, 30px);
+    background: color-mix(in srgb, var(--surface-solid) 94%, transparent);
+    box-shadow: 0 18px 58px color-mix(in srgb, var(--ink) 8%, transparent);
+    backdrop-filter: none;
+  }
+  html[data-route="dashboard"] .weather-panel { border-color: color-mix(in srgb, var(--accent) 30%, var(--line)); }
+  html[data-route="dashboard"] .panel h2 { font-size: clamp(21px, 1.8vw, 29px); font-weight: 750; }
+  html[data-route="dashboard"] .market-panel .panel-kicker,
+  html[data-route="dashboard"] .commute-panel .panel-kicker,
+  html[data-route="dashboard"] .world-panel .panel-kicker,
+  html[data-route="dashboard"] .weather-panel .panel-kicker,
+  html[data-route="dashboard"] .status-chip,
+  html[data-route="dashboard"] .market-state,
+  html[data-route="dashboard"] .tiny-time { display: none; }
+  html[data-route="dashboard"] .weather-now { margin-top: clamp(18px, 2.4vh, 30px); align-items: center; }
+  html[data-route="dashboard"] .temperature { font-size: clamp(90px, 8.2vw, 132px); font-weight: 600; }
+  html[data-route="dashboard"] .weather-side { gap: 14px; }
+  html[data-route="dashboard"] .sunnyday-score { min-width: 150px; padding: 10px 12px; background: color-mix(in srgb, var(--accent) 6%, var(--surface-solid)); }
+  html[data-route="dashboard"] .weather-chart { padding-top: clamp(20px, 3vh, 34px); }
+  html[data-route="dashboard"] .market-feature { flex: 1; grid-template-columns: .82fr 1.18fr; align-items: center; }
+  html[data-route="dashboard"] .market-feature h3 { font-size: clamp(27px, 2.25vw, 36px); }
+  html[data-route="dashboard"] .mini-chart { height: clamp(58px, 8vh, 94px); }
+  html[data-route="dashboard"] .route-list { flex: 1; align-content: center; margin-top: 14px; }
+  html[data-route="dashboard"] .forecast-title > p:last-child { display: none; }
+  html[data-route="dashboard"] .forecast-title .panel-kicker { margin: 0; color: var(--ink); font: 750 clamp(19px, 1.6vw, 25px)/1.1 var(--sans); letter-spacing: -.025em; }
+  html[data-route="dashboard"] .forecast-panel { display: flex; flex-direction: column; align-items: stretch; gap: 0; }
+  html[data-route="dashboard"] .forecast-days { min-height: 0; flex: 1; margin-top: 10px; border-left: 0; border-top: 1px solid var(--line); }
+}
+
+@media (min-width: 721px) and (max-width: 1100px) {
+  html[data-route="dashboard"] .shell { width: calc(100% - 32px); }
+  html[data-route="dashboard"] .panel { background: color-mix(in srgb, var(--surface-solid) 92%, transparent); backdrop-filter: none; }
+  html[data-route="dashboard"] .panel h2 { font-size: clamp(19px, 2.5vw, 24px); font-weight: 750; }
+  html[data-route="dashboard"] .market-panel .panel-kicker,
+  html[data-route="dashboard"] .commute-panel .panel-kicker { display: none; }
+  html[data-route="dashboard"] .intro h1 { font-size: clamp(34px, 5vw, 48px); }
+  html[data-route="dashboard"] .local-time time { font-size: clamp(36px, 5vw, 52px); }
+}
+
+@media (max-width: 720px) {
+  html[data-route="dashboard"] .intro { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto; align-items: end; gap: 6px 10px; }
+  html[data-route="dashboard"] .intro > div:first-child { display: contents; }
+  html[data-route="dashboard"] .intro .eyebrow { grid-column: 1; grid-row: 1; margin: 0; }
+  html[data-route="dashboard"] .intro h1 { grid-column: 1 / -1; grid-row: 2; overflow: hidden; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+  html[data-route="dashboard"] .local-time { grid-column: 2; grid-row: 1; display: flex; align-items: flex-end; }
+  html[data-route="dashboard"] .local-time p,
+  html[data-route="dashboard"] .local-time span { display: none; }
+  html[data-route="dashboard"] .local-time time { font-size: clamp(24px, 7vw, 34px); line-height: .9; font-weight: 650; }
+  html[data-route="dashboard"] .panel { background: color-mix(in srgb, var(--surface-solid) 94%, transparent); backdrop-filter: none; }
+  html[data-route="dashboard"] .panel h2 { font-size: clamp(21px, 6vw, 27px); font-weight: 750; }
+  html[data-route="dashboard"] .market-panel .panel-kicker,
+  html[data-route="dashboard"] .commute-panel .panel-kicker,
+  html[data-route="dashboard"] .world-panel .panel-kicker { display: none; }
+  html[data-route="dashboard"] .forecast-title > p:last-child { display: none; }
+  html[data-route="dashboard"] .forecast-title .panel-kicker { margin: 0; color: var(--ink); font: 750 clamp(21px, 6vw, 27px)/1.1 var(--sans); letter-spacing: -.025em; }
+  html[data-route="dashboard"] .rain-meter { grid-template-columns: 8px minmax(0, 1fr); }
+}
+
+@media (max-width: 420px) {
+  html[data-route="dashboard"] .header-actions { gap: 5px; }
+  html[data-route="dashboard"] .icon-button,
+  html[data-route="dashboard"] .keep-awake-button,
+  html[data-route="dashboard"] .theme-button { width: 34px; height: 34px; min-height: 34px; }
+  html[data-route="dashboard"] .weather-now { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+  html[data-route="dashboard"] .sunnyday-score { min-width: 96px; padding: 4px 6px; }
+  html[data-route="dashboard"] .sunnyday-score-copy > span { max-width: 48px; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }

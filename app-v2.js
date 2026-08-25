@@ -425,8 +425,13 @@ function tickClock() {
     $("localSeconds").textContent = hour < 12 ? "AM" : "PM";
   } else {
     $("dateEyebrow").textContent = `${parts.weekday.toUpperCase()} · ${parts.month.toUpperCase()} ${parts.day}`;
-    $("localTime").textContent = `${parts.hour}:${parts.minute}`;
-    $("localSeconds").textContent = parts.second;
+    $("localTime").textContent = new Intl.DateTimeFormat("en-US", {
+      timeZone: TIMEZONE,
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: !use24Hour
+    }).format(now).replace(/\s?[AP]M$/i, "");
+    $("localSeconds").textContent = use24Hour ? parts.second : (hour < 12 ? "AM" : "PM");
   }
   $("greeting").textContent = `${hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : hour < 21 ? "Good evening" : "Good night"}, ${NAME}.`;
   const minuteKey = `${parts.year}-${parts.month}-${parts.day}-${parts.hour}-${parts.minute}-${use24Hour}`;
@@ -437,7 +442,7 @@ function tickClock() {
   updateAutomaticTheme();
 }
 
-let use24Hour = IS_ECHO_ROUTE ? false : localStorage.getItem(TIME_KEY) !== "12";
+let use24Hour = IS_ECHO_ROUTE ? false : localStorage.getItem(TIME_KEY) === "24";
 function renderWorldClocks() {
   const now = new Date();
   const homeDay = dateParts(now).day;
