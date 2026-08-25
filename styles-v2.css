@@ -175,6 +175,23 @@ html[data-theme="afterdark"] .star-field-two {
   animation: stars-pulse 4.7s 1.1s ease-in-out infinite alternate-reverse;
 }
 
+html[data-theme="afterdark"] .weather-orb {
+  top: -64px;
+  right: 7%;
+  width: clamp(160px, 17vw, 230px);
+  height: auto;
+  aspect-ratio: 1;
+  opacity: .56;
+  background:
+    radial-gradient(circle at 34% 29%, rgba(111, 138, 163, .32) 0 5%, transparent 6%),
+    radial-gradient(circle at 67% 54%, rgba(100, 128, 154, .28) 0 8%, transparent 9%),
+    radial-gradient(circle at 43% 72%, rgba(112, 140, 165, .24) 0 6%, transparent 7%),
+    radial-gradient(circle at 28% 58%, rgba(255, 255, 255, .22) 0 4%, transparent 5%),
+    radial-gradient(circle at 36% 30%, #f5f8fb 0, #d8e5ef 58%, #a8bed1 100%);
+  box-shadow: 0 0 48px rgba(174, 210, 239, .24), 0 0 110px rgba(117, 179, 224, .12);
+  animation: moon-glow-dim 9s ease-in-out infinite;
+}
+
 .weather-orb, .weather-cloud, .weather-precip {
   position: absolute;
   opacity: 0;
@@ -876,6 +893,10 @@ html[data-theme="eink"] *, html[data-theme="eink"] *::before, html[data-theme="e
 @keyframes skeleton-sweep { to { background-position: -200% 0, 0 0; } }
 @keyframes stars-pulse { from { opacity: .28; filter: brightness(.7); } to { opacity: .9; filter: brightness(1.4); } }
 @keyframes sun-breathe { from { transform: scale(.96); box-shadow: 0 0 60px rgba(255, 211, 107, .55); } to { transform: scale(1.05); box-shadow: 0 0 110px rgba(255, 211, 107, .86); } }
+@keyframes moon-glow-dim {
+  0%, 100% { opacity: .42; filter: brightness(.86); transform: scale(.985); box-shadow: 0 0 38px rgba(174, 210, 239, .18), 0 0 82px rgba(117, 179, 224, .08); }
+  50% { opacity: .68; filter: brightness(1.07); transform: scale(1.018); box-shadow: 0 0 62px rgba(194, 222, 244, .3), 0 0 130px rgba(117, 179, 224, .16); }
+}
 @keyframes cloud-drift-one { from { transform: translateX(0); } to { transform: translateX(calc(100vw + 430px)); } }
 @keyframes cloud-drift-two { from { transform: translateX(0) scale(.72); } to { transform: translateX(calc(-100vw - 460px)) scale(.72); } }
 @keyframes dialog-in { from { opacity: 0; transform: translateY(22px) scale(.965); } to { opacity: 1; transform: translateY(0) scale(1); } }
