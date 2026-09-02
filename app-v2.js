@@ -706,31 +706,47 @@ function rainMeterLevel(chance) {
 }
 
 function forecastSunnyDayScore(daily, index) {
-  let score = 100;
-  const rain = number(daily?.precipitation_probability_max?.[index]) ?? 0;
-  if (rain >= 70) score -= 45;
-  else if (rain >= 50) score -= 30;
-  else if (rain >= 30) score -= 16;
-  else if (rain >= 15) score -= 6;
-
-  const precipitation = number(daily?.precipitation_sum?.[index]);
-  if (precipitation != null && precipitation >= .25) score -= 15;
-
+  const clampScore = (value) => Math.max(0, Math.min(100, value));
+  const code = number(daily?.weather_code?.[index]) ?? 0;
+  const rain = clampScore(number(daily?.precipitation_probability_max?.[index]) ?? 0);
   const sunshine = number(daily?.sunshine_duration?.[index]);
   const daylight = number(daily?.daylight_duration?.[index]);
   const sunshineRatio = sunshine != null && daylight ? sunshine / daylight : null;
-  if (sunshineRatio != null) {
-    if (sunshineRatio >= .7) score += 4;
-    else if (sunshineRatio < .35) score -= 14;
-    else if (sunshineRatio < .5) score -= 7;
-  }
-
   const high = number(daily?.temperature_2m_max?.[index]) ?? 72;
-  if (high >= 100) score -= 22;
-  else if (high >= 92) score -= 10;
-  else if (high <= 32) score -= 18;
-  if ((number(daily?.uv_index_max?.[index]) ?? 0) >= 9) score -= 5;
-  return Math.round(Math.max(0, Math.min(100, score)));
+  const uv = number(daily?.uv_index_max?.[index]) ?? 4;
+
+  let precipitationScore = 100 - rain * .72;
+  if (rain >= 70) precipitationScore = Math.min(precipitationScore, 42);
+  else if (rain >= 50) precipitationScore = Math.min(precipitationScore, 58);
+  else if (rain >= 30) precipitationScore = Math.min(precipitationScore, 76);
+  else if (rain >= 15) precipitationScore = Math.min(precipitationScore, 90);
+
+  let skyScore = sunshineRatio == null ? 78 : 42 + clampScore(sunshineRatio * 100) * .58;
+  if ([95, 96, 99].includes(code)) skyScore = Math.min(skyScore, 22);
+  else if ([71, 73, 75, 77, 85, 86].includes(code)) skyScore = Math.min(skyScore, 38);
+  else if ([45, 48].includes(code)) skyScore = Math.min(skyScore, 40);
+  else if ([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82].includes(code)) skyScore = Math.min(skyScore, 45);
+  else if (code === 3) skyScore = Math.min(skyScore, 58);
+  else if (code === 2) skyScore = Math.min(skyScore, 76);
+  else if (code === 1) skyScore = Math.min(skyScore, 90);
+
+  let comfortScore = 100;
+  if (high > 82) comfortScore = 100 - (high - 82) * 2.6;
+  else if (high < 65 && high >= 50) comfortScore = 100 - (65 - high) * 1.8;
+  else if (high < 50) comfortScore = 73 - (50 - high) * 1.5;
+
+  let safetyScore = uv <= 5 ? 100 : uv <= 6 ? 94 : uv <= 7 ? 86 : uv <= 8 ? 74 : uv <= 9 ? 60 : uv <= 10 ? 45 : 30;
+  if ([95, 96, 99].includes(code)) safetyScore = Math.min(safetyScore, 30);
+  else if ([71, 73, 75, 77, 85, 86].includes(code)) safetyScore = Math.min(safetyScore, 65);
+  else if ([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82].includes(code)) safetyScore = Math.min(safetyScore, 80);
+
+  const airScore = 85;
+  const weighted = clampScore(precipitationScore) * .32
+    + clampScore(skyScore) * .22
+    + clampScore(comfortScore) * .22
+    + clampScore(safetyScore) * .14
+    + airScore * .10;
+  return Math.round(clampScore(weighted));
 }
 
 function renderForecast(daily) {
