@@ -772,7 +772,7 @@ function renderForecast(daily) {
     const grade = sunnyDayLetterGrade(score);
     const rainChance = Math.max(0, Math.min(100, number(rain[index]) ?? 0));
     return `<div class="forecast-day">
-      ${dateLabel}<div class="forecast-score" data-score-band="${sunnyDayScoreBand(score)}" style="--forecast-score:${score}" title="SunnyDay grade ${grade} · ${score}/100 · ${esc(scoreLabel)}" aria-label="SunnyDay grade ${grade}, ${esc(scoreLabel)}"><strong>${grade}</strong><span class="forecast-score-track"><i></i></span></div>
+      ${dateLabel}<div class="forecast-score" data-score-band="${sunnyDayScoreBand(score)}" data-grade="${grade}" style="--forecast-score:${score}" title="SunnyDay grade ${grade} · ${score}/100 · ${esc(scoreLabel)}" aria-label="SunnyDay grade ${grade}, ${esc(scoreLabel)}"><strong>${grade}</strong><span class="forecast-score-track"><i></i></span></div>
       <div><div class="forecast-temp"><span>${round(highs[index])}°</span><span>${round(lows[index])}°</span></div><div class="rain-meter" data-rain-level="${rainMeterLevel(rainChance)}" style="--rain-chance:${rainChance}" title="${Math.round(rainChance)}% chance of rain" aria-label="${Math.round(rainChance)} percent chance of rain"><span class="rain-track"><i></i></span></div></div>
     </div>`;
   }).join("");

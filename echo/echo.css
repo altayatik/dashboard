@@ -569,12 +569,114 @@ html[data-route="echo"][data-theme="afterdark"] .star-field-two {
   html[data-route="echo"] .echo-masthead { grid-template-columns: minmax(260px, 1fr) auto; }
 }
 
-/* The standard route uses the exact Echo composition on wide screens. On
-   portrait and phone-sized viewports, the same cards fit the fixed canvas one
-   at a time instead of shrinking into an unreadable miniature dashboard. */
+/* The standard route keeps the Echo composition, with a two-by-two bridge for
+   tablets and ordinary app windows. Short canvases use one fitted card at a
+   time so no panel is ever squeezed past its readable size. */
 html[data-adaptive="true"] .adaptive-tabs { display: none !important; }
 
-@media (max-width: 720px), (max-width: 900px) and (orientation: portrait) {
+@media (min-width: 721px) and (max-width: 1100px) and (min-height: 651px) {
+  html[data-adaptive="true"] .adaptive-shell {
+    width: calc(100% - 24px);
+    padding: 12px 0;
+    grid-template-rows: 96px minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  html[data-adaptive="true"] .echo-masthead {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 14px;
+    padding: 0 4px 10px;
+  }
+
+  html[data-adaptive="true"] .echo-greeting { font-size: clamp(30px, 4.7vw, 46px); }
+  html[data-adaptive="true"] .local-time { gap: 14px; }
+  html[data-adaptive="true"] .local-time .echo-date {
+    margin-bottom: 5px;
+    font-size: clamp(12px, 1.8vw, 18px);
+  }
+  html[data-adaptive="true"] .local-time time { font-size: clamp(46px, 7.2vw, 70px); }
+  html[data-adaptive="true"] .local-time .echo-meridiem {
+    padding-bottom: 5px;
+    font-size: clamp(12px, 1.8vw, 18px);
+  }
+
+  html[data-adaptive="true"] .dashboard-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  html[data-adaptive="true"] .weather-panel { grid-column: 1; grid-row: 1; }
+  html[data-adaptive="true"] .market-panel { grid-column: 2; grid-row: 1; }
+  html[data-adaptive="true"] .commute-panel { grid-column: 1; grid-row: 2; }
+  html[data-adaptive="true"] .forecast-panel { grid-column: 2; grid-row: 2; }
+  html[data-adaptive="true"] .world-panel { display: none !important; }
+
+  html[data-adaptive="true"] .panel,
+  html[data-adaptive="true"] .skeleton-layer { padding: clamp(14px, 2vw, 20px); }
+  html[data-adaptive="true"] .panel { border-radius: clamp(18px, 2.8vw, 28px); }
+  html[data-adaptive="true"] .panel-head { min-height: 30px; }
+  html[data-adaptive="true"] .panel h2,
+  html[data-adaptive="true"] .forecast-title .panel-kicker { font-size: clamp(21px, 2.8vw, 28px); }
+
+  html[data-adaptive="true"] .weather-now { gap: 8px; margin-top: 4px; }
+  html[data-adaptive="true"] .temperature { font-size: clamp(62px, 10vw, 92px); }
+  html[data-adaptive="true"] .temperature sup { margin: 5px 0 0 6px; font-size: 15px; }
+  html[data-adaptive="true"] .weather-meta { gap: 2px; margin-top: 6px; }
+  html[data-adaptive="true"] .weather-meta p { font-size: clamp(9px, 1.35vw, 13px); }
+  html[data-adaptive="true"] .weather-meta strong { font-size: clamp(13px, 1.8vw, 18px); }
+  html[data-adaptive="true"] .sunnyday-score {
+    width: clamp(70px, 11vw, 96px);
+    min-width: clamp(70px, 11vw, 96px);
+    min-height: 0;
+    gap: 3px;
+  }
+  html[data-adaptive="true"] .sunnyday-ring { width: clamp(58px, 9vw, 76px); height: clamp(58px, 9vw, 76px); }
+  html[data-adaptive="true"] .sunnyday-ring > strong { font-size: clamp(24px, 3.6vw, 34px); }
+  html[data-adaptive="true"] .sunnyday-score-copy { gap: 1px; }
+  html[data-adaptive="true"] .sunnyday-score-copy small { font-size: clamp(7px, 1vw, 10px); }
+  html[data-adaptive="true"] .sunnyday-score-copy > span { max-width: 96px; font-size: clamp(8px, 1.1vw, 11px); }
+  html[data-adaptive="true"] .weather-chart { padding-top: 5px; }
+  html[data-adaptive="true"] .chart-labels { margin-bottom: 4px; font-size: clamp(8px, 1.2vw, 11px); }
+  html[data-adaptive="true"] .chart-canvas { height: clamp(48px, 7.5vh, 72px); }
+  html[data-adaptive="true"] .chart-times { margin-top: 3px; font-size: clamp(8px, 1.2vw, 11px); }
+  html[data-adaptive="true"] .metric-row { gap: 6px; margin-top: 5px; padding-top: 6px; }
+  html[data-adaptive="true"] .metric-row span { margin-bottom: 2px; font-size: clamp(8px, 1.1vw, 10px); }
+  html[data-adaptive="true"] .metric-row strong { font-size: clamp(12px, 1.7vw, 17px); }
+
+  html[data-adaptive="true"] .market-feature { gap: 8px; margin-top: 3px; }
+  html[data-adaptive="true"] .market-feature p strong { font-size: clamp(12px, 1.7vw, 17px); }
+  html[data-adaptive="true"] .market-feature h3 { margin: 3px 0 2px; font-size: clamp(28px, 4.5vw, 44px); }
+  html[data-adaptive="true"] .delta { font-size: clamp(12px, 1.7vw, 17px); }
+  html[data-adaptive="true"] .mini-chart { height: clamp(54px, 8vh, 76px); }
+  html[data-adaptive="true"] .ticker-list { gap: 5px; margin-top: 4px; }
+  html[data-adaptive="true"] .ticker-row { padding: 6px 5px; }
+  html[data-adaptive="true"] .ticker-row span { font-size: clamp(10px, 1.5vw, 14px); }
+  html[data-adaptive="true"] .ticker-row em { font-size: clamp(9px, 1.3vw, 12px); }
+
+  html[data-adaptive="true"] .route-list { gap: 6px; }
+  html[data-adaptive="true"] .route > span,
+  html[data-adaptive="true"] .route > strong { font-size: clamp(12px, 1.8vw, 18px); }
+  html[data-adaptive="true"] .route-track { height: 7px; }
+  html[data-adaptive="true"] .reversible { margin-top: 5px; padding-top: 6px; }
+  html[data-adaptive="true"] .reversible > span { width: 30px; height: 30px; font-size: 17px; }
+  html[data-adaptive="true"] .reversible strong { font-size: clamp(13px, 1.8vw, 18px); }
+
+  html[data-adaptive="true"] .forecast-days { margin-top: 5px; }
+  html[data-adaptive="true"] .forecast-day { padding: clamp(6px, 1vw, 10px); }
+  html[data-adaptive="true"] .forecast-date strong,
+  html[data-adaptive="true"] .forecast-day > span { font-size: clamp(9px, 1.25vw, 12px); }
+  html[data-adaptive="true"] .forecast-date small { font-size: clamp(8px, 1.1vw, 10px); }
+  html[data-adaptive="true"] .forecast-score { gap: 4px; }
+  html[data-adaptive="true"] .forecast-score strong { font-size: clamp(12px, 1.7vw, 17px); }
+  html[data-adaptive="true"] .forecast-score-track { height: 6px; }
+  html[data-adaptive="true"] .forecast-temp { font-size: clamp(11px, 1.55vw, 15px); }
+  html[data-adaptive="true"] .rain-meter { gap: 3px; margin-top: 4px; }
+  html[data-adaptive="true"] .rain-meter::before { font-size: 6px; }
+  html[data-adaptive="true"] .rain-track { height: 4px; }
+}
+
+@media (max-width: 720px), (max-width: 1100px) and (max-height: 650px) {
   html[data-adaptive="true"] .adaptive-shell {
     width: calc(100% - 20px);
     padding: 10px 0;

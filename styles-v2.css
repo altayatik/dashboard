@@ -729,7 +729,7 @@ html[data-theme="weather"][data-weather="snow"] .weather-precip {
   gap: 6px;
   animation: forecast-score-in .55s cubic-bezier(.2, .78, .22, 1) both;
 }
-.forecast-score strong { min-width: 24px; color: var(--ink); font: 700 11px/1 var(--mono); }
+.forecast-score strong { min-width: 24px; color: var(--forecast-score-color); font: 700 11px/1 var(--mono); }
 .forecast-score-track { position: relative; display: block; height: 6px; border-radius: 99px; background: color-mix(in srgb, var(--forecast-score-color) 14%, var(--line)); }
 .forecast-score-track::before { position: absolute; inset: -3px; border-radius: inherit; background: var(--forecast-score-color); opacity: .055; filter: blur(5px); content: ""; }
 .forecast-score-track i { position: relative; display: block; width: calc(var(--forecast-score) * 1%); height: 100%; border-radius: inherit; background: var(--forecast-score-color); box-shadow: 0 0 5px color-mix(in srgb, var(--forecast-score-color) 20%, transparent); transform-origin: left; animation: grow .85s .12s ease both; }
@@ -738,6 +738,19 @@ html[data-theme="weather"][data-weather="snow"] .weather-precip {
 .forecast-score[data-score-band="mixed"] { --forecast-score-color: #f2b447; }
 .forecast-score[data-score-band="risky"] { --forecast-score-color: #ee8149; }
 .forecast-score[data-score-band="poor"] { --forecast-score-color: #d8534d; }
+.forecast-score[data-grade="A+"] { --forecast-score-color: #24b989; }
+.forecast-score[data-grade="A"] { --forecast-score-color: #35bca2; }
+.forecast-score[data-grade="A−"] { --forecast-score-color: #48bcb8; }
+.forecast-score[data-grade="B+"] { --forecast-score-color: #54b7ca; }
+.forecast-score[data-grade="B"] { --forecast-score-color: #62acd5; }
+.forecast-score[data-grade="B−"] { --forecast-score-color: #789bd8; }
+.forecast-score[data-grade="C+"] { --forecast-score-color: #908bcf; }
+.forecast-score[data-grade="C"] { --forecast-score-color: #aa7fc1; }
+.forecast-score[data-grade="C−"] { --forecast-score-color: #c176a8; }
+.forecast-score[data-grade="D+"] { --forecast-score-color: #d27488; }
+.forecast-score[data-grade="D"] { --forecast-score-color: #dc7c69; }
+.forecast-score[data-grade="D−"] { --forecast-score-color: #df914a; }
+.forecast-score[data-grade="F"] { --forecast-score-color: #d8534d; }
 .forecast-temp { display: flex; justify-content: space-between; gap: 4px; font: 500 10px var(--mono); }
 .forecast-temp span:last-child { color: var(--muted); }
 .rain-meter { --rain-color: #4aa77b; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 6px; margin-top: 8px; }
