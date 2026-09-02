@@ -574,7 +574,8 @@ html[data-route="echo"][data-theme="afterdark"] .star-field-two {
    time so no panel is ever squeezed past its readable size. */
 html[data-adaptive="true"] .adaptive-tabs { display: none !important; }
 
-@media (min-width: 721px) and (max-width: 1100px) and (min-height: 651px) {
+@media (min-width: 721px) and (min-height: 651px) and (max-width: 1100px),
+       (min-width: 721px) and (min-height: 651px) and (max-aspect-ratio: 3/2) {
   html[data-adaptive="true"] .adaptive-shell {
     width: calc(100% - 24px);
     padding: 12px 0;
